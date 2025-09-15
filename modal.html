@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zinde Kal Modal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="global.css">
+  <style>
+    
+  </style>
+  <script src="global.js" defer></script>
+</head>
+<body>
+  <!-- Button Container -->
+  <div class="button-container">
+    <button class="zinde-kal-button" onclick="openModal()">Zinde Kal</button>
+    <button class="notification-button" onclick="showToast()">Bildirim Göster</button>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-notification" id="toastNotification">
+    <div class="alert-content">
+      <img src="images/31f8655fd69e0d6079ed8e8223050f64f0ecde46.png" alt="Alert Icon" class="alert-icon">
+      <p class="alert-text">MEBİ'de 2 saattir çalışıyorsunuz. Kısa bir mola vermek ister misiniz? Hadi, şimdi küçük bir egzersiz yapma zamanı!</p>
+    </div>
+    <button class="close-button" onclick="hideToast()">
+      <img src="images/I40002125_42726_40001809_131728.svg" alt="Close">
+    </button>
+  </div>
+
+  <!-- Modal Overlay -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal-container" onclick="event.stopPropagation()">
+      
+      <!-- Modal Header with Tabs -->
+      <header class="widget-header">
+        <nav class="tabs-nav">
+          <a href="#" class="tab-item active" onclick="switchTab('exercise')">Egzersiz Videoları</a>
+          <a href="#" class="tab-item" onclick="switchTab('relaxing')">Dinlendirici Videolar</a>
+          <a href="#" class="tab-item" onclick="switchTab('music')">Dinlendirici Müzikler</a>
+        </nav>
+        <button class="close-button" onclick="closeModal()">
+          <img src="images/40002081_89320.svg" alt="Close">
+        </button>
+      </header>
+
+      <!-- Exercise Videos Tab -->
+      <div id="exercise-tab" class="tab-content active">
+        <nav class="category-nav-scroll">
+          <div class="category-nav">
+            <a href="#" class="category-item active">
+              <div class="category-icon icon-ayak">
+                <img src="images/I40002081_85729_40002059_81442_40000951_34954_40002059_81347.svg" alt="" style="position:absolute; top:13.54px; left:4.67px; width:31.31px; height:13.05px;">
+                <img src="images/I40002081_85729_40002059_81442_40000951_34954_40002059_81352.svg" alt="" style="position:absolute; top:3.81px; left:8.02px; width:28.02px; height:39.04px;">
+                <img src="images/I40002081_85729_40002059_81442_40000951_34954_40002059_81354.svg" alt="" style="position:absolute; top:33.4px; left:3.18px; width:31.31px; height:13.05px;">
+              </div>
+              <div class="category-text">
+                <span class="category-title">Ayak Bileği Egzersizi</span>
+                <span class="category-count">2 Video</span>
+              </div>
+            </a>
+            <a href="#" class="category-item">
+              <div class="category-icon icon-omuz">
+                <img src="images/I40002081_85729_40002081_85434_40000951_34915_40002059_81358.svg" alt="" style="position: absolute; top: 6.29px; left: 7.12px; width: 6.71px; height: 12.61px;">
+                <img src="images/I40002081_85729_40002081_85434_40000951_34915_40002059_81359.svg" alt="" style="position: absolute; top: 6.1px; left: 6.92px; width: 7.11px; height: 13.01px;">
+                <img src="images/I40002081_85729_40002081_85434_40000951_34915_40002059_81360.svg" alt="" style="position: absolute; top: 6.1px; left: 37.98px; width: 7.11px; height: 13.01px;">
+                <img src="images/I40002081_85729_40002081_85434_40000951_34915_40002126_16632.svg" alt="" style="position: absolute; top: 4.51px; left: 12.49px; width: 27.02px; height: 42.99px;">
+              </div>
+              <div class="category-text">
+                <span class="category-title">Ayakta Omuz Egzersizi</span>
+                <span class="category-count">6 Video</span>
+              </div>
+            </a>
+            <a href="#" class="category-item">
+              <div class="category-icon icon-oturarak-omuz">
+                <img src="images/I40002081_85729_40002081_85465_40000951_34915_40002059_81370.svg" alt="" style="position: absolute; top: 6.17px; left: 29.11px; width: 10.9px; height: 3.56px;">
+                <img src="images/I40002081_85729_40002081_85465_40000951_34915_40002059_81373.svg" alt="" style="position: absolute; top: 6.03px; left: 7.85px; width: 10.9px; height: 3.56px;">
+                <img src="images/I40002081_85729_40002081_85465_40000951_34915_40002126_16570.svg" alt="" style="position: absolute; top: 3.96px; left: 8.95px; width: 29.66px; height: 44.6px;">
+                <img src="images/I40002081_85729_40002081_85465_40000951_34915_40002059_81380.svg" alt="" style="position: absolute; top: 36.94px; left: 20.39px; width: 7.06px; height: 10.18px;">
+                <img src="images/I40002081_85729_40002081_85465_40000951_34915_40002059_81381.svg" alt="" style="position: absolute; top: 33.66px; left: 18.75px; width: 10.36px; height: 2.52px;">
+              </div>
+              <div class="category-text">
+                <span class="category-title">Oturarak Omuz Egzersizi</span>
+                <span class="category-count">4 Video</span>
+              </div>
+            </a>
+            <a href="#" class="category-item">
+              <span class="badge">Yeni</span>
+              <div class="category-icon icon-yuruyus">
+                <img src="images/I40002081_85729_40002081_85533_40000951_34915_40002059_81428.svg" alt="" style="position: absolute; top: 24.99px; left: 43.55px; width: 6.54px; height: 11.61px;">
+                <img src="images/I40002081_85729_40002081_85533_40000951_34915_40002059_81434.svg" alt="" style="position: absolute; top: 30.17px; left: 28.56px; width: 7.19px; height: 18.86px;">
+                <img src="images/I40002081_85729_40002081_85533_40000951_34915_40002126_16648.svg" alt="" style="position: absolute; top: 3.86px; left: 24.66px; width: 22.16px; height: 38.85px;">
+                <img src="images/I40002081_85729_40002081_85533_40000951_34915_40002059_81436.svg" alt="" style="position: absolute; top: 29.11px; left: 26.37px; width: 11.57px; height: 7.65px;">
+              </div>
+              <div class="category-text">
+                <span class="category-title">Yürüyüş Egzersizi</span>
+                <span class="category-count">3 Video</span>
+              </div>
+            </a>
+          </div>
+        </nav>
+
+        <div class="video-grid">
+          <article class="video-card">
+            <figure class="video-thumbnail-container">
+              <img src="images/22e0e7bafd270fb27277b8d9a15e880de2f195fe.png" alt="Ayak Bileği Egzersizi" class="video-thumbnail">
+              <button class="play-button">
+                <img src="images/I40002081_58013_40000826_22072_40000826_21643.svg" alt="Play" style="position: absolute; top: 0; left: 0; width: 72px; height: 72px;">
+                <img src="images/I40002081_58013_40000826_22072_40000826_21640.svg" alt="Play" style="position: absolute; top: 20.25px; left: 20.25px; width: 31.5px; height: 31.5px;">
+              </button>
+            </figure>
+            <div class="video-info">
+              <div class="video-title-bar">
+                <h3>Ayak Bileği Egzersizi</h3>
+                <span>02dk 15s</span>
+              </div>
+              <p>Bu egzersizde ayak bileği çevrilir, öne ve arkaya esneme yapılır, böylece eklem hareketliliği artırılır.</p>
+            </div>
+          </article>
+          <article class="video-card">
+            <figure class="video-thumbnail-container">
+              <img src="images/22e0e7bafd270fb27277b8d9a15e880de2f195fe.png" alt="Ayak Bileği Egzersizi" class="video-thumbnail">
+              <button class="play-button">
+                <img src="images/I40002081_71720_40000826_22072_40000826_21643.svg" alt="Play" style="position: absolute; top: 0; left: 0; width: 72px; height: 72px;">
+                <img src="images/I40002081_71720_40000826_22072_40000826_21640.svg" alt="Play" style="position: absolute; top: 20.25px; left: 20.25px; width: 31.5px; height: 31.5px;">
+              </button>
+            </figure>
+            <div class="video-info">
+              <div class="video-title-bar">
+                <h3>Ayak Bileği Egzersizi</h3>
+                <span>02dk 15s</span>
+              </div>
+              <p>Videoda ayakta durarak dairesel bilek döndürme, öne-arkaya esnetme ve yana açma hareketleri gösterilmektedir.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <!-- Relaxing Videos Tab -->
+      <div id="relaxing-tab" class="tab-content">
+        <div class="video-grid">
+          <article class="video-card">
+            <figure class="video-thumbnail-container">
+              <img src="images/e76d0e1e1ce805300ea1aea49625553b40899d3b.png" alt="Relaxing Video" class="video-thumbnail">
+              <button class="play-button">
+                <img src="images/I40002104_43994_40000826_21643.svg" alt="Play" style="position: absolute; top: 0; left: 0; width: 72px; height: 72px;">
+                <img src="images/I40002104_43994_40000826_21640.svg" alt="Play" style="position: absolute; top: 20.25px; left: 20.25px; width: 31.5px; height: 31.5px;">
+              </button>
+            </figure>
+            <div class="video-info">
+              <div class="video-title-bar">
+                <h3>Dinlendirici Video</h3>
+                <span>05:30</span>
+              </div>
+              <p>Rahatlatıcı doğa sesleri ve görüntüleri ile kendinizi dinlendirin.</p>
+            </div>
+          </article>
+          <article class="video-card">
+            <figure class="video-thumbnail-container">
+              <img src="images/a9949c9bb887da3fed8cf42f1e3e8f8b139ea973.png" alt="Relaxing Video" class="video-thumbnail">
+              <button class="play-button">
+                <img src="images/I40002104_44005_40000826_21643.svg" alt="Play" style="position: absolute; top: 0; left: 0; width: 72px; height: 72px;">
+                <img src="images/I40002104_44005_40000826_21640.svg" alt="Play" style="position: absolute; top: 20.25px; left: 20.25px; width: 31.5px; height: 31.5px;">
+              </button>
+            </figure>
+            <div class="video-info">
+              <div class="video-title-bar">
+                <h3>Nefes Egzersizi</h3>
+                <span>03:45</span>
+              </div>
+              <p>Derin nefes teknikleri ile stresinizi azaltın ve rahatlatın.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <!-- Music Playlist Tab -->
+      <div id="music-tab" class="tab-content" style="padding: 0;">
+        <div class="music-content">
+          <ul class="playlist">
+            <li class="playlist-item">
+              <div class="playlist-item-content">
+                <div class="song-info">
+                  <img src="images/40002110_17870.svg" alt="Play">
+                  <span>Sessiz Akşam</span>
+                </div> 
+                <span>4:12</span>
+              </div>
+            </li>
+            <li class="playlist-item active">
+              <div class="playlist-item-content">
+                <div class="song-info">
+                  <img src="images/40002113_16388.svg" alt="Playing">
+                  <span>Huzur Melodisi</span>
+                </div> 
+                <span>3:28</span>
+              </div>
+            </li>
+            <li class="playlist-item hover">
+              <div class="playlist-item-content">
+                <div class="song-info">
+                  <img src="images/40002110_17870.svg" alt="Play">
+                  <span>Doğa Sesleri</span>
+                </div> 
+                <span>5:15</span>
+              </div>
+            </li>
+            <li class="playlist-item">
+              <div class="playlist-item-content">
+                <div class="song-info">
+                  <span>4</span>
+                  <span>Rahatlatıcı Piyano</span>
+                </div> 
+                <span>4:42</span>
+              </div>
+            </li>
+            <li class="playlist-item">
+              <div class="playlist-item-content">
+                <div class="song-info">
+                  <span>5</span>
+                  <span>Meditasyon Müziği</span>
+                </div> 
+                <span>6:18</span>
+              </div>
+            </li>
+            <li class="playlist-item disabled">
+              <div class="playlist-item-content">
+                <div class="song-info">
+                  <span>6</span>
+                  <span>Uyku Melodileri</span>
+                </div> 
+                <span>7:30</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <footer class="music-player">
+          <div class="player-song-details">
+            <span class="player-song-title">Huzur Melodisi</span>
+            <span class="player-song-artist">Dinlendirici Müzikler</span>
+          </div>
+          <div class="player-controls-container">
+            <div class="player-controls">
+              <button class="control-button">
+                <img src="images/I40002093_48242_40002110_17737.svg" alt="Shuffle">
+              </button>
+              <button class="control-button">
+                <img src="images/I40002093_48242_40002093_47916.svg" alt="Previous">
+              </button>
+              <button class="control-button">
+                <img src="images/I40002093_48242_40002093_47925.svg" alt="Play">
+              </button>
+              <button class="control-button">
+                <img src="images/I40002093_48242_40002093_47919.svg" alt="Next">
+              </button>
+              <button class="control-button">
+                <img src="images/I40002093_48242_40002110_17816.svg" alt="Repeat">
+              </button>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar">
+                <div class="progress-bar-filled" style="width: 23.5%;"></div>
+                <div class="progress-bar-thumb" style="left: 23.5%;"></div>
+              </div>
+              <div class="time-display">
+                <span>00:49</span> / <span>03:28</span>
+              </div>
+              <button class="control-button">
+                <img src="images/I40002093_48242_40002093_47877.svg" alt="Volume">
+              </button>
+            </div>
+          </div>
+          <button class="control-button">
+            <img src="images/I40002093_48242_40002110_44027.svg" alt="Fullscreen">
+          </button>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Modal functionality
+    function openModal() {
+      document.getElementById('modalOverlay').classList.add('active');
+      document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    }
+
+    function closeModal(event) {
+      // Close only if clicking on overlay, not the modal content
+      if (event && event.target !== document.getElementById('modalOverlay')) {
+        return;
+      }
+      document.getElementById('modalOverlay').classList.remove('active');
+      document.body.style.overflow = 'auto'; // Restore scrolling
+    }
+
+    // Tab switching functionality
+    function switchTab(tabName) {
+      // Remove active class from all tabs and tab contents
+      document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      
+      // Add active class to clicked tab
+      event.target.classList.add('active');
+      
+      // Show corresponding tab content
+      const tabContentMap = {
+        'exercise': 'exercise-tab',
+        'relaxing': 'relaxing-tab',
+        'music': 'music-tab'
+      };
+      
+      document.getElementById(tabContentMap[tabName]).classList.add('active');
+    }
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        closeModal();
+      }
+    });
+
+    // Category selection functionality
+    document.querySelectorAll('.category-item').forEach(item => {
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        // Remove active class from all categories
+        document.querySelectorAll('.category-item').forEach(cat => cat.classList.remove('active'));
+        // Add active class to clicked category
+        this.classList.add('active');
+      });
+    });
+
+    // Toast notification functionality
+    function showToast() {
+      const toast = document.getElementById('toastNotification');
+      toast.classList.add('show');
+      
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        hideToast();
+      }, 5000);
+    }
+
+    function hideToast() {
+      const toast = document.getElementById('toastNotification');
+      toast.classList.remove('show');
+    }
+  </script>
+</body>
+</html>
