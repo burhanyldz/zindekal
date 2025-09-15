@@ -17,7 +17,6 @@
     --color-background-card: #f8fbff;
     --color-background-card-hover: #F4F9FF;
     --color-background-card-active: #f2f8ff;
-    --color-background-card-hover: #eaf4ff;
     --color-background-disabled: #f6f3f2;
     --color-border-dark: #b6c5e9;
     --color-border-darker: #92A8DE;
@@ -168,8 +167,13 @@ body {
             cursor: pointer;
 
             &.active {
-                color: var(--color-primary);
-                border-color: var(--color-primary);
+                color: var(--color-primary) !important;
+                border-color: var(--color-primary) !important;
+            }
+
+            &:hover {
+                color: var(--color-text-medium);
+                border-color: var(--color-border-dark);
             }
         }
     }
@@ -355,7 +359,7 @@ body {
         overflow: hidden;
 
         &:hover {
-            border-color: var(--color-border-dark-hover);
+            border-color: var(--color-border-darker);
         }
 
         .video-thumbnail-container {
