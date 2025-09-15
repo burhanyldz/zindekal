@@ -21,7 +21,7 @@
   --color-border-dark: #b6c5e9;
   --color-border-light: #dfe6f5;
   --border-active: 2px solid #92a8de;
-  --font-family-main: 'Rubik', sans-serif;
+  --font-family-main: "Rubik", sans-serif;
 }
 
 body {
@@ -104,7 +104,6 @@ body {
   font-family: var(--font-family-main);
   display: block;
 }
-
 .zinde-kal-button:hover {
   transform: translateY(-2px);
   box-shadow: 0px 6px 16px rgba(0, 51, 179, 0.4);
@@ -116,7 +115,6 @@ body {
   padding: 24px;
   padding-top: 20px;
 }
-
 .tab-content.active {
   display: block;
 }
@@ -128,7 +126,6 @@ body {
   flex: 1;
   overflow: hidden;
 }
-
 #music-tab.active {
   display: flex !important;
   flex-direction: column;
@@ -199,7 +196,6 @@ body {
   border-bottom: 2px solid transparent;
   cursor: pointer;
 }
-
 .tab-item.active {
   color: var(--color-primary);
   border-color: var(--color-primary);
@@ -230,7 +226,6 @@ body {
   flex-shrink: 0;
   cursor: pointer;
 }
-
 .category-item.active {
   background-color: var(--color-background-card-active);
   border: var(--border-active);
@@ -243,22 +238,6 @@ body {
   box-shadow: inset 0px 24px 24px 0px rgba(255, 255, 255, 0.46);
   position: relative;
   flex-shrink: 0;
-}
-
-.icon-ayak {
-  background-color: var(--color-secondary-orange);
-}
-
-.icon-omuz {
-  background-color: var(--color-secondary-red);
-}
-
-.icon-oturarak-omuz {
-  background-color: var(--color-secondary-green);
-}
-
-.icon-yuruyus {
-  background-color: var(--color-secondary-pink);
 }
 
 .category-text {
@@ -316,8 +295,9 @@ body {
 .video-thumbnail {
   width: 100%;
   height: auto;
-  aspect-ratio: 480 / 270;
-  object-fit: cover;
+  aspect-ratio: 480/270;
+  -o-object-fit: cover;
+     object-fit: cover;
 }
 
 .play-button {
@@ -378,8 +358,7 @@ body {
   display: flex;
   flex-direction: column;
 }
-
-.playlist-item-content {
+.playlist .playlist-item-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -387,25 +366,17 @@ body {
   font-size: 16px;
   color: var(--color-text-dark);
 }
-
-.playlist-item.hover .playlist-item-content {
+.playlist .playlist-item:hover .playlist-item-content {
   background-color: var(--color-background-hover);
 }
-
-.playlist-item.active .playlist-item-content {
+.playlist .playlist-item.active .playlist-item-content {
   background-color: var(--color-background-card);
 }
-
-.playlist-item.active .playlist-item-content .song-info span {
+.playlist .playlist-item.active .song-info span {
   color: var(--color-primary);
 }
-
-.playlist-item.disabled .playlist-item-content {
+.playlist .playlist-item.disabled .playlist-item-content {
   background-color: var(--color-background-disabled);
-}
-
-.playlist-item.disabled .playlist-item-content span {
-  color: var(--color-text-disabled);
 }
 
 .song-info {
@@ -413,12 +384,10 @@ body {
   align-items: center;
   gap: 16px;
 }
-
 .song-info img {
   width: 24px;
   height: 24px;
 }
-
 .song-info span:first-child {
   text-align: center;
   width: 24px;
@@ -438,37 +407,31 @@ body {
   box-sizing: border-box;
   flex-shrink: 0;
 }
-
-.player-song-details {
+.music-player .player-song-details {
   display: flex;
   flex-direction: column;
 }
-
-.player-song-title {
+.music-player .player-song-title {
   font-size: 16px;
   font-weight: 600;
   color: var(--color-text-medium);
 }
-
-.player-song-artist {
+.music-player .player-song-artist {
   font-size: 12px;
   color: var(--color-text-light);
 }
-
-.player-controls-container {
+.music-player .player-controls-container {
   display: flex;
   align-items: center;
   gap: 24px;
   flex-grow: 1;
 }
-
-.player-controls {
+.music-player .player-controls {
   display: flex;
   align-items: center;
   gap: 24px;
 }
-
-.control-button {
+.music-player .control-button {
   background: none;
   border: none;
   padding: 0;
@@ -522,7 +485,6 @@ body {
 }
 
 /* #region Toast Notification Styles */
-
 .toast-notification {
   position: fixed;
   top: 20px;
@@ -550,13 +512,11 @@ body {
     transform: translateX(100%);
     opacity: 0;
   }
-
   to {
     transform: translateX(0);
     opacity: 1;
   }
 }
-
 /* Button Container */
 .button-container {
   display: flex;
@@ -584,4 +544,4 @@ body {
   box-shadow: 0px 6px 16px rgba(245, 158, 11, 0.4);
 }
 
-/* #endregion */
+/* #endregion *//*# sourceMappingURL=global.css.map */
