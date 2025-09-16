@@ -390,25 +390,33 @@ body {
 .video-grid .video-card .video-info .video-title-bar {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 8px;
+  width: 100%;
 }
 .video-grid .video-card .video-info .video-title-bar h3 {
   font-size: 16px;
   font-weight: 600;
   color: var(--color-text-medium);
   margin: 0;
+  flex: 1;
+  min-width: 0; /* Allow text to wrap */
+  line-height: 1.2;
 }
 .video-grid .video-card .video-info .video-title-bar span {
   font-size: 16px;
   font-weight: 600;
   color: var(--color-text-medium);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 .video-grid .video-card .video-info p {
   font-size: 12px;
   line-height: 20px;
   color: var(--color-text-light);
   margin: 0;
+  width: 100%;
+  display: block;
 }
 .video-grid .empty-category-message {
   grid-column: 1/-1;
