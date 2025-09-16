@@ -1,0 +1,1162 @@
+/**
+ * ZindeKal Modal Plugin
+ * A configurable modal plugin for wellness content including exercises, relaxing videos, and music
+ * 
+ * @version 1.0.0
+ * @author ZindeKal Team
+ */
+
+class ZindeKalModal {
+    constructor(config = {}) {
+        this.config = this.validateAndMergeConfig(config);
+        this.isInitialized = false;
+        this.isModalOpen = false;
+        this.currentTab = 'exercise';
+        this.audioPlayer = null;
+        this.modalElement = null;
+        this.toastElement = null;
+        this.boundEventHandlers = new Map();
+        
+        // Initialize the plugin
+        this.init();
+    }
+
+    /**
+     * Default configuration structure
+     */
+    static get DEFAULT_CONFIG() {
+        return {
+            // Container where modal will be appended
+            container: document.body,
+            
+            // Modal settings
+            modal: {
+                title: "Zinde Kal",
+                closeOnOverlay: true,
+                closeOnEscape: true,
+                showCloseButton: true
+            },
+            
+            // Tab configuration
+            tabs: {
+                exercise: { title: "Egzersiz Videoları", enabled: true },
+                relaxing: { title: "Dinlendirici Videolar", enabled: true },
+                music: { title: "Dinlendirici Müzikler", enabled: true }
+            },
+            
+            // Exercise categories and videos
+            exercise: {
+                categories: [],
+                videos: []
+            },
+            
+            // Relaxing videos
+            relaxing: {
+                videos: []
+            },
+            
+            // Music playlist
+            music: {
+                tracks: [],
+                currentTrack: 0,
+                autoplay: false
+            },
+            
+            // Toast notification settings
+            toast: {
+                autoHideDelay: 5000,
+                icon: "images/kanka_head.png",
+                message: "",
+                enabled: true
+            },
+            
+            // Asset paths
+            assets: {
+                basePath: "images/",
+                icons: {
+                    close: "close.svg",
+                    closeActive: "close-active.svg",
+                    play: "play.svg",
+                    pause: "pause.svg",
+                    next: "next.svg",
+                    prev: "prev.svg",
+                    playSmall: "play-sm.svg",
+                    thumbnailPlay: "thumbnail-play.svg",
+                    muted: "muted.svg",
+                    unmuted: "unmuted.svg"
+                }
+            },
+            
+            // Event callbacks
+            events: {
+                onOpen: null,
+                onClose: null,
+                onTabChange: null,
+                onVideoPlay: null,
+                onAudioPlay: null,
+                onAudioPause: null
+            }
+        };
+    }
+
+    /**
+     * Validate and merge user config with defaults
+     */
+    validateAndMergeConfig(userConfig) {
+        // Create a clean copy of default config to avoid mutations
+        const defaultConfig = JSON.parse(JSON.stringify(ZindeKalModal.DEFAULT_CONFIG));
+        
+        // Create a clean copy of user config to avoid circular references
+        let cleanUserConfig = {};
+        try {
+            cleanUserConfig = userConfig ? JSON.parse(JSON.stringify(userConfig)) : {};
+        } catch (error) {
+            console.warn('ZindeKalModal: Could not serialize user config, using shallow copy');
+            cleanUserConfig = { ...userConfig };
+        }
+        
+        // Handle container element separately since it can't be serialized
+        if (userConfig && userConfig.container) {
+            cleanUserConfig.container = userConfig.container;
+        }
+        
+        // Deep merge configuration
+        const mergedConfig = this.deepMerge(defaultConfig, cleanUserConfig);
+        
+        // Basic validation
+        if (!mergedConfig.container) {
+            throw new Error('ZindeKalModal: Container element is required');
+        }
+        
+        if (typeof mergedConfig.container === 'string') {
+            const element = document.querySelector(mergedConfig.container);
+            if (!element) {
+                throw new Error(`ZindeKalModal: Container element "${mergedConfig.container}" not found`);
+            }
+            mergedConfig.container = element;
+        }
+        
+        return mergedConfig;
+    }
+
+    /**
+     * Deep merge two objects with circular reference protection
+     */
+    deepMerge(target, source, visited = new WeakSet()) {
+        // Handle null/undefined
+        if (!target || !source) {
+            return source || target || {};
+        }
+        
+        // Prevent circular references
+        if (visited.has(source)) {
+            return target;
+        }
+        
+        const result = { ...target };
+        visited.add(source);
+        
+        for (const key in source) {
+            if (source.hasOwnProperty(key)) {
+                const sourceValue = source[key];
+                const targetValue = target[key];
+                
+                // Handle arrays by replacing them completely
+                if (Array.isArray(sourceValue)) {
+                    result[key] = [...sourceValue];
+                }
+                // Handle objects by deep merging
+                else if (sourceValue && typeof sourceValue === 'object' && sourceValue.constructor === Object) {
+                    result[key] = this.deepMerge(targetValue || {}, sourceValue, visited);
+                }
+                // Handle primitive values and functions
+                else {
+                    result[key] = sourceValue;
+                }
+            }
+        }
+        
+        return result;
+    }
+
+    /**
+     * Initialize the modal plugin
+     */
+    init() {
+        if (this.isInitialized) {
+            console.warn('ZindeKalModal: Already initialized');
+            return this;
+        }
+
+        // Create modal HTML structure
+        this.createModalStructure();
+        
+        // Create toast notification if enabled
+        if (this.config.toast.enabled) {
+            this.createToastStructure();
+        }
+        
+        // Bind event handlers
+        this.bindEvents();
+        
+        this.isInitialized = true;
+        
+        return this;
+    }
+
+    /**
+     * Create the modal HTML structure dynamically
+     */
+    createModalStructure() {
+        // Create modal overlay
+        this.modalElement = document.createElement('div');
+        this.modalElement.className = 'modal-overlay';
+        this.modalElement.id = 'zindeKalModalOverlay';
+        
+        this.modalElement.innerHTML = this.generateModalHTML();
+        
+        // Append to container
+        this.config.container.appendChild(this.modalElement);
+    }
+
+    /**
+     * Generate the complete modal HTML structure
+     */
+    generateModalHTML() {
+        return `
+            <div class="modal-container">
+                ${this.generateModalHeader()}
+                ${this.generateTabsContent()}
+            </div>
+        `;
+    }
+
+    /**
+     * Generate modal header with tabs and close button
+     */
+    generateModalHeader() {
+        const enabledTabs = Object.entries(this.config.tabs)
+            .filter(([key, tab]) => tab.enabled)
+            .map(([key, tab]) => `
+                <a href="#" class="tab-item ${key === this.currentTab ? 'active' : ''}" data-tab="${key}">
+                    ${tab.title}
+                </a>
+            `).join('');
+
+        return `
+            <header class="widget-header">
+                <nav class="tabs-nav">
+                    ${enabledTabs}
+                </nav>
+                ${this.config.modal.showCloseButton ? `
+                    <button class="close-button" data-action="close">
+                        <img src="${this.config.assets.basePath}${this.config.assets.icons.close}" alt="Close">
+                    </button>
+                ` : ''}
+            </header>
+        `;
+    }
+
+    /**
+     * Generate all tab content sections
+     */
+    generateTabsContent() {
+        let content = '';
+        
+        // Exercise tab
+        if (this.config.tabs.exercise.enabled) {
+            content += this.generateExerciseTab();
+        }
+        
+        // Relaxing videos tab
+        if (this.config.tabs.relaxing.enabled) {
+            content += this.generateRelaxingTab();
+        }
+        
+        // Music tab
+        if (this.config.tabs.music.enabled) {
+            content += this.generateMusicTab();
+        }
+        
+        return content;
+    }
+
+    /**
+     * Generate exercise tab content
+     */
+    generateExerciseTab() {
+        const isActive = this.currentTab === 'exercise';
+        
+        return `
+            <div id="exercise-tab" class="tab-content ${isActive ? 'active' : ''}">
+                ${this.generateCategoryNavigation()}
+                ${this.generateVideoGrid(this.config.exercise.videos)}
+            </div>
+        `;
+    }
+
+    /**
+     * Generate category navigation for exercise tab
+     */
+    generateCategoryNavigation() {
+        if (!this.config.exercise.categories.length) {
+            return '';
+        }
+
+        const categories = this.config.exercise.categories.map((category, index) => `
+            <a href="#" class="category-item ${index === 0 ? 'active' : ''}" data-category="${category.id}">
+                ${category.badge ? `<span class="badge">${category.badge}</span>` : ''}
+                <div class="category-icon ${category.iconClass || ''}">
+                    <img src="${this.config.assets.basePath}${category.icon}" alt="${category.title}">
+                </div>
+                <div class="category-text">
+                    <span class="category-title">${category.title}</span>
+                    <span class="category-count">${category.videoCount} Video</span>
+                </div>
+            </a>
+        `).join('');
+
+        return `
+            <nav class="category-nav-scroll">
+                <div class="category-nav">
+                    ${categories}
+                </div>
+            </nav>
+        `;
+    }
+
+    /**
+     * Generate video grid for any tab
+     */
+    generateVideoGrid(videos) {
+        if (!videos || !videos.length) {
+            return '<div class="video-grid"><p>No videos available</p></div>';
+        }
+
+        const videoCards = videos.map(video => `
+            <article class="video-card" data-video-id="${video.id}">
+                <figure class="video-thumbnail-container">
+                    <img src="${video.thumbnail}" alt="${video.title}" class="video-thumbnail">
+                    <button class="play-button" data-action="play-video" data-video-src="${video.src}">
+                        <img src="${this.config.assets.basePath}${this.config.assets.icons.thumbnailPlay}" 
+                             alt="Play" 
+                             style="position: absolute; top: 20.25px; left: 20.25px; width: 31.5px; height: 31.5px;">
+                    </button>
+                </figure>
+                <div class="video-info">
+                    <div class="video-title-bar">
+                        <h3>${video.title}</h3>
+                        <span>${video.duration}</span>
+                    </div>
+                    <p>${video.description}</p>
+                </div>
+            </article>
+        `).join('');
+
+        return `
+            <div class="video-grid">
+                ${videoCards}
+            </div>
+        `;
+    }
+
+    /**
+     * Generate relaxing videos tab content
+     */
+    generateRelaxingTab() {
+        const isActive = this.currentTab === 'relaxing';
+        
+        return `
+            <div id="relaxing-tab" class="tab-content ${isActive ? 'active' : ''}">
+                ${this.generateVideoGrid(this.config.relaxing.videos)}
+            </div>
+        `;
+    }
+
+    /**
+     * Generate music tab content
+     */
+    generateMusicTab() {
+        const isActive = this.currentTab === 'music';
+        
+        return `
+            <div id="music-tab" class="tab-content ${isActive ? 'active' : ''}" style="padding: 0;">
+                <div class="music-content">
+                    ${this.generatePlaylist()}
+                </div>
+                ${this.generateMusicPlayer()}
+            </div>
+        `;
+    }
+
+    /**
+     * Generate playlist HTML
+     */
+    generatePlaylist() {
+        if (!this.config.music.tracks.length) {
+            return '<p>No tracks available</p>';
+        }
+
+        const playlistItems = this.config.music.tracks.map((track, index) => `
+            <li class="playlist-item ${index === this.config.music.currentTrack ? 'active' : ''}" 
+                data-track-index="${index}">
+                <div class="playlist-item-content">
+                    <div class="song-info">
+                        <img src="${this.config.assets.basePath}${this.config.assets.icons.playSmall}" alt="Play">
+                        <div class="song-details">
+                            <span class="song-title">${track.title}</span>
+                            ${track.artist ? `<span class="song-artist">${track.artist}</span>` : ''}
+                        </div>
+                    </div> 
+                    <span>${track.duration}</span>
+                </div>
+            </li>
+        `).join('');
+
+        return `
+            <ul class="playlist">
+                ${playlistItems}
+            </ul>
+        `;
+    }
+
+    /**
+     * Generate music player footer
+     */
+    generateMusicPlayer() {
+        const currentTrack = this.config.music.tracks[this.config.music.currentTrack];
+        if (!currentTrack) {
+            return '';
+        }
+
+        return `
+            <footer class="music-player">
+                <div class="player-song-details">
+                    <span class="player-song-title">${currentTrack.title}</span>
+                    <span class="player-song-artist">${currentTrack.artist || 'Unknown Artist'}</span>
+                </div>
+                <div class="player-controls-container">
+                    <div class="player-controls">
+                        <button class="control-button" data-action="prev-track">
+                            <img src="${this.config.assets.basePath}${this.config.assets.icons.prev}" alt="Previous">
+                        </button>
+                        <button class="control-button play-pause-button" data-action="toggle-play">
+                            <img src="${this.config.assets.basePath}${this.config.assets.icons.play}" alt="Play">
+                        </button>
+                        <button class="control-button" data-action="next-track">
+                            <img src="${this.config.assets.basePath}${this.config.assets.icons.next}" alt="Next">
+                        </button>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="cursor: pointer;">
+                            <div class="progress-bar-filled" style="width: 0%;"></div>
+                            <div class="progress-bar-thumb" style="left: 0%;"></div>
+                        </div>
+                        <div class="time-display">
+                            <span>00:00</span> / <span>00:00</span>
+                        </div>
+                        <button class="control-button volume-button" data-action="toggle-mute">
+                            <img src="${this.config.assets.basePath}${this.config.assets.icons.unmuted}" alt="Volume">
+                        </button>
+                    </div>
+                </div>
+            </footer>
+        `;
+    }
+
+    /**
+     * Create toast notification structure
+     */
+    createToastStructure() {
+        this.toastElement = document.createElement('div');
+        this.toastElement.className = 'toast-notification';
+        this.toastElement.id = 'zindeKalToastNotification';
+        
+        this.toastElement.innerHTML = `
+            <div class="alert-content">
+                <img src="${this.config.toast.icon}" alt="Alert Icon" class="alert-icon">
+                <p class="alert-text">${this.config.toast.message}</p>
+            </div>
+            <button class="close-button" data-action="close-toast">
+                <img src="${this.config.assets.basePath}${this.config.assets.icons.closeActive}" alt="Close">
+            </button>
+        `;
+        
+        this.config.container.appendChild(this.toastElement);
+    }
+
+    /**
+     * Bind all event handlers
+     */
+    bindEvents() {
+        // Modal overlay click (close on overlay)
+        if (this.config.modal.closeOnOverlay) {
+            this.addEventHandler(this.modalElement, 'click', (e) => {
+                if (e.target === this.modalElement) {
+                    this.close();
+                }
+            });
+        }
+
+        // Escape key handler
+        if (this.config.modal.closeOnEscape) {
+            this.addEventHandler(document, 'keydown', (e) => {
+                if (e.key === 'Escape' && this.isModalOpen) {
+                    this.close();
+                }
+            });
+        }
+
+        // Event delegation for all modal interactions
+        this.addEventHandler(this.modalElement, 'click', (e) => {
+            this.handleModalClick(e);
+        });
+
+        // Toast close button
+        if (this.toastElement) {
+            this.addEventHandler(this.toastElement, 'click', (e) => {
+                if (e.target.closest('[data-action="close-toast"]')) {
+                    this.hideToast();
+                }
+            });
+        }
+    }
+
+    /**
+     * Add event handler and track it for cleanup
+     */
+    addEventHandler(element, event, handler) {
+        element.addEventListener(event, handler);
+        
+        if (!this.boundEventHandlers.has(element)) {
+            this.boundEventHandlers.set(element, []);
+        }
+        
+        this.boundEventHandlers.get(element).push({ event, handler });
+    }
+
+    /**
+     * Handle all modal click events through delegation
+     */
+    handleModalClick(e) {
+        const action = e.target.closest('[data-action]')?.dataset.action;
+        const tabElement = e.target.closest('[data-tab]');
+        const categoryElement = e.target.closest('[data-category]');
+        const trackElement = e.target.closest('[data-track-index]');
+
+        if (action) {
+            this.handleAction(action, e);
+        } else if (tabElement) {
+            this.switchTab(tabElement.dataset.tab);
+        } else if (categoryElement) {
+            this.selectCategory(categoryElement.dataset.category);
+        } else if (trackElement) {
+            this.selectTrack(parseInt(trackElement.dataset.trackIndex));
+        }
+    }
+
+    /**
+     * Handle specific actions
+     */
+    handleAction(action, event) {
+        switch (action) {
+            case 'close':
+                this.close();
+                break;
+            case 'play-video':
+                const videoSrc = event.target.closest('[data-video-src]')?.dataset.videoSrc;
+                if (videoSrc) {
+                    this.playVideo(videoSrc);
+                }
+                break;
+            case 'toggle-play':
+                this.toggleAudioPlay();
+                break;
+            case 'prev-track':
+                this.previousTrack();
+                break;
+            case 'next-track':
+                this.nextTrack();
+                break;
+            case 'toggle-mute':
+                this.toggleAudioMute();
+                break;
+        }
+    }
+
+    /**
+     * Switch between tabs
+     */
+    switchTab(tabName) {
+        if (!this.config.tabs[tabName]?.enabled) {
+            console.warn(`ZindeKalModal: Tab "${tabName}" is not enabled`);
+            return this;
+        }
+
+        // Update current tab
+        const oldTab = this.currentTab;
+        this.currentTab = tabName;
+
+        // Update tab navigation
+        this.modalElement.querySelectorAll('.tab-item').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tab === tabName);
+        });
+
+        // Update tab content
+        this.modalElement.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.toggle('active', content.id === `${tabName}-tab`);
+        });
+
+        // Initialize audio player when switching to music tab
+        if (tabName === 'music' && !this.audioPlayer) {
+            this.initializeAudioPlayer();
+        }
+
+        // Call onTabChange callback
+        if (this.config.events.onTabChange) {
+            this.config.events.onTabChange(tabName, oldTab, this);
+        }
+
+        return this;
+    }
+
+    /**
+     * Select exercise category
+     */
+    selectCategory(categoryId) {
+        // Remove active class from all categories
+        this.modalElement.querySelectorAll('.category-item').forEach(item => {
+            item.classList.remove('active');
+        });
+
+        // Add active class to selected category
+        const selectedCategory = this.modalElement.querySelector(`[data-category="${categoryId}"]`);
+        if (selectedCategory) {
+            selectedCategory.classList.add('active');
+        }
+
+        // Filter videos by category (this would need to be implemented based on your data structure)
+        this.filterVideosByCategory(categoryId);
+
+        return this;
+    }
+
+    /**
+     * Filter videos by category
+     */
+    filterVideosByCategory(categoryId) {
+        // Filter exercise videos by category and update the video grid
+        const filteredVideos = this.config.exercise.videos.filter(video => 
+            video.categoryId === categoryId
+        );
+
+        const exerciseTab = this.modalElement.querySelector('#exercise-tab');
+        const videoGrid = exerciseTab.querySelector('.video-grid');
+        
+        if (videoGrid) {
+            videoGrid.innerHTML = this.generateVideoGrid(filteredVideos).replace('<div class="video-grid">', '').replace('</div>', '');
+        }
+
+        return this;
+    }
+
+    /**
+     * Play a video
+     */
+    playVideo(videoSrc) {
+        // This is a placeholder - implement your video player logic here
+        console.log('Playing video:', videoSrc);
+        
+        // Call onVideoPlay callback
+        if (this.config.events.onVideoPlay) {
+            this.config.events.onVideoPlay(videoSrc, this);
+        }
+
+        return this;
+    }
+
+    /**
+     * Initialize audio player for music tab
+     */
+    initializeAudioPlayer() {
+        const musicPlayerFooter = this.modalElement.querySelector('.music-player');
+        const currentTrack = this.config.music.tracks[this.config.music.currentTrack];
+        
+        if (musicPlayerFooter && currentTrack && !this.audioPlayer) {
+            // Import the existing EmbeddedAudioPlayer class
+            if (typeof EmbeddedAudioPlayer !== 'undefined') {
+                this.audioPlayer = new EmbeddedAudioPlayer({
+                    container: musicPlayerFooter,
+                    track: {
+                        title: currentTrack.title,
+                        album: currentTrack.artist || 'Unknown Artist',
+                        src: currentTrack.src
+                    },
+                    autoplay: this.config.music.autoplay
+                });
+
+                // Bind to audio events to manage visual state
+                if (this.audioPlayer.audio) {
+                    this.audioPlayer.audio.addEventListener('play', () => {
+                        this.showPlayingAnimation(this.config.music.currentTrack);
+                        if (this.config.events.onAudioPlay) {
+                            this.config.events.onAudioPlay(currentTrack, this);
+                        }
+                    });
+
+                    this.audioPlayer.audio.addEventListener('pause', () => {
+                        this.hidePlayingAnimation();
+                        if (this.config.events.onAudioPause) {
+                            this.config.events.onAudioPause(currentTrack, this);
+                        }
+                    });
+
+                    this.audioPlayer.audio.addEventListener('ended', () => {
+                        this.hidePlayingAnimation();
+                        // Auto-play next track
+                        this.nextTrack();
+                    });
+                }
+            } else {
+                console.error('ZindeKalModal: EmbeddedAudioPlayer class not found. Please include audio-player.js');
+            }
+        }
+
+        return this;
+    }
+
+    /**
+     * Toggle audio play/pause
+     */
+    toggleAudioPlay() {
+        if (this.audioPlayer) {
+            if (this.audioPlayer.isPlaying) {
+                this.audioPlayer.pause();
+                this.hidePlayingAnimation();
+            } else {
+                this.audioPlayer.play().then(() => {
+                    this.showPlayingAnimation(this.config.music.currentTrack);
+                }).catch(e => {
+                    console.log('Play was prevented:', e);
+                });
+            }
+        }
+
+        return this;
+    }
+
+    /**
+     * Play previous track
+     */
+    previousTrack() {
+        if (this.config.music.tracks.length === 0) return this;
+
+        const wasPlaying = this.audioPlayer && this.audioPlayer.isPlaying;
+        const newIndex = this.config.music.currentTrack > 0 
+            ? this.config.music.currentTrack - 1 
+            : this.config.music.tracks.length - 1;
+
+        this.switchTrack(newIndex);
+        
+        // If audio was playing, continue playing the new track
+        if (wasPlaying && this.audioPlayer) {
+            this.audioPlayer.play().catch(e => {
+                console.log('Play was prevented:', e);
+            });
+        }
+        
+        return this;
+    }
+
+    /**
+     * Play next track
+     */
+    nextTrack() {
+        if (this.config.music.tracks.length === 0) return this;
+
+        const wasPlaying = this.audioPlayer && this.audioPlayer.isPlaying;
+        const newIndex = this.config.music.currentTrack < this.config.music.tracks.length - 1
+            ? this.config.music.currentTrack + 1
+            : 0;
+
+        this.switchTrack(newIndex);
+        
+        // If audio was playing, continue playing the new track
+        if (wasPlaying && this.audioPlayer) {
+            this.audioPlayer.play().catch(e => {
+                console.log('Play was prevented:', e);
+            });
+        }
+        
+        return this;
+    }
+
+    /**
+     * Select and play a specific track
+     */
+    selectTrack(trackIndex) {
+        if (trackIndex >= 0 && trackIndex < this.config.music.tracks.length) {
+            this.switchTrack(trackIndex);
+            
+            // Start playing the selected track
+            if (this.audioPlayer) {
+                this.audioPlayer.play().then(() => {
+                    // Show playing animation for the selected track
+                    this.showPlayingAnimation(trackIndex);
+                }).catch(e => {
+                    console.log('Play was prevented:', e);
+                });
+            }
+        }
+
+        return this;
+    }
+
+    /**
+     * Show playing animation for a specific track
+     */
+    showPlayingAnimation(trackIndex) {
+        const playlistItems = this.modalElement.querySelectorAll('.playlist-item');
+        const targetItem = playlistItems[trackIndex];
+        
+        if (targetItem) {
+            const songInfo = targetItem.querySelector('.song-info');
+            const playIcon = songInfo.querySelector('img');
+            const canvas = songInfo.querySelector('canvas');
+            const track = this.config.music.tracks[trackIndex];
+            
+            if (playIcon && !canvas) {
+                playIcon.style.display = 'none';
+                
+                // Add the canvas for Rive animation
+                const canvasElement = document.createElement('canvas');
+                canvasElement.id = 'playing-riv';
+                canvasElement.width = 24;
+                canvasElement.height = 24;
+                songInfo.insertBefore(canvasElement, songInfo.firstChild);
+                
+                this.initializeRiveAnimation();
+            }
+        }
+    }
+
+    /**
+     * Hide playing animation for all tracks
+     */
+    hidePlayingAnimation() {
+        const playlistItems = this.modalElement.querySelectorAll('.playlist-item');
+        
+        playlistItems.forEach((item, index) => {
+            const songInfo = item.querySelector('.song-info');
+            const playIcon = songInfo.querySelector('img');
+            const canvas = songInfo.querySelector('canvas');
+            
+            if (canvas) {
+                canvas.remove();
+            }
+            
+            if (playIcon) {
+                playIcon.style.display = 'block';
+            }
+        });
+    }
+
+    /**
+     * Switch to a specific track
+     */
+    switchTrack(trackIndex) {
+        if (trackIndex < 0 || trackIndex >= this.config.music.tracks.length) {
+            return this;
+        }
+
+        const oldIndex = this.config.music.currentTrack;
+        this.config.music.currentTrack = trackIndex;
+        const newTrack = this.config.music.tracks[trackIndex];
+
+        // Update playlist visual state
+        this.modalElement.querySelectorAll('.playlist-item').forEach((item, index) => {
+            item.classList.toggle('active', index === trackIndex);
+            
+            const songInfo = item.querySelector('.song-info');
+            const playIcon = songInfo.querySelector('img');
+            const canvas = songInfo.querySelector('canvas');
+            const track = this.config.music.tracks[index];
+            
+            // Remove any existing canvas animations
+            if (canvas) {
+                canvas.remove();
+            }
+            
+            // Always show play icon for all tracks (playing animation will be added separately)
+            if (!playIcon) {
+                songInfo.innerHTML = `
+                    <img src="${this.config.assets.basePath}${this.config.assets.icons.playSmall}" alt="Play">
+                    <div class="song-details">
+                        <span class="song-title">${track.title}</span>
+                        ${track.artist ? `<span class="song-artist">${track.artist}</span>` : ''}
+                    </div>
+                `;
+            } else {
+                playIcon.style.display = 'block';
+            }
+        });
+
+        // Update player details
+        const playerDetails = this.modalElement.querySelector('.player-song-details');
+        if (playerDetails) {
+            playerDetails.querySelector('.player-song-title').textContent = newTrack.title;
+            playerDetails.querySelector('.player-song-artist').textContent = newTrack.artist || 'Unknown Artist';
+        }
+
+        // Update audio player
+        if (this.audioPlayer && newTrack.src) {
+            this.audioPlayer.audio.src = newTrack.src;
+            this.audioPlayer.audio.load();
+        }
+
+        return this;
+    }
+
+    /**
+     * Toggle audio mute
+     */
+    toggleAudioMute() {
+        if (this.audioPlayer) {
+            this.audioPlayer.toggleMute();
+        }
+
+        return this;
+    }
+
+    /**
+     * Initialize Rive animation for playing indicator
+     */
+    initializeRiveAnimation() {
+        // This requires the Rive library to be loaded
+        if (typeof rive !== 'undefined') {
+            const canvas = this.modalElement.querySelector("#playing-riv");
+            
+            if (canvas) {
+                canvas.width = 24;
+                canvas.height = 24;
+                canvas.style.width = '24px';
+                canvas.style.height = '24px';
+                
+                try {
+                    new rive.Rive({
+                        src: `${this.config.assets.basePath}playing.riv`,
+                        canvas: canvas,
+                        autoplay: true,
+                        stateMachines: "State Machine",
+                        layout: new rive.Layout({
+                            fit: rive.Fit.Contain,
+                            alignment: rive.Alignment.Center
+                        }),
+                        onLoad: () => {
+                            canvas.width = 24;
+                            canvas.height = 24;
+                            canvas.style.width = '24px';
+                            canvas.style.height = '24px';
+                        }
+                    });
+                } catch (error) {
+                    console.warn('ZindeKalModal: Could not load Rive animation:', error);
+                }
+            }
+        }
+    }
+
+    /**
+     * Show toast notification
+     */
+    showToast(message = null) {
+        if (!this.toastElement) {
+            console.warn('ZindeKalModal: Toast notifications are disabled');
+            return this;
+        }
+
+        // Update message if provided
+        if (message) {
+            const alertText = this.toastElement.querySelector('.alert-text');
+            if (alertText) {
+                alertText.textContent = message;
+            }
+        }
+
+        this.toastElement.classList.add('show');
+
+        // Auto-hide after configured delay
+        if (this.config.toast.autoHideDelay > 0) {
+            setTimeout(() => {
+                this.hideToast();
+            }, this.config.toast.autoHideDelay);
+        }
+
+        return this;
+    }
+
+    /**
+     * Hide toast notification
+     */
+    hideToast() {
+        if (this.toastElement) {
+            this.toastElement.classList.remove('show');
+        }
+
+        return this;
+    }
+
+    /**
+     * Update configuration
+     */
+    updateConfig(newConfig) {
+        // Create a fresh copy to avoid circular references
+        const cleanConfig = JSON.parse(JSON.stringify(newConfig));
+        this.config = this.deepMerge(this.config, cleanConfig);
+        
+        // Rebuild modal if it's initialized
+        if (this.isInitialized) {
+            const wasOpen = this.isModalOpen;
+            this.destroy();
+            this.init();
+            if (wasOpen) {
+                this.open();
+            }
+        }
+
+        return this;
+    }
+
+    /**
+     * Get current configuration
+     */
+    getConfig() {
+        try {
+            // Return a clean copy to prevent external mutations
+            const configCopy = JSON.parse(JSON.stringify(this.config));
+            // Note: container element will be lost in JSON serialization
+            configCopy.container = this.config.container;
+            return configCopy;
+        } catch (error) {
+            console.warn('ZindeKalModal: Could not serialize config, returning shallow copy');
+            return { ...this.config };
+        }
+    }
+
+    /**
+     * Check if modal is currently open
+     */
+    isOpen() {
+        return this.isModalOpen;
+    }
+
+    /**
+     * Get current tab
+     */
+    getCurrentTab() {
+        return this.currentTab;
+    }
+
+    /**
+     * Get current track info
+     */
+    getCurrentTrack() {
+        return this.config.music.tracks[this.config.music.currentTrack] || null;
+    }
+
+    /**
+     * Open the modal
+     */
+    open() {
+        if (!this.isInitialized) {
+            console.error('ZindeKalModal: Plugin not initialized');
+            return this;
+        }
+
+        this.modalElement.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        this.isModalOpen = true;
+
+        // Initialize audio player if music tab is active
+        if (this.currentTab === 'music' && !this.audioPlayer) {
+            this.initializeAudioPlayer();
+        }
+
+        // Call onOpen callback
+        if (this.config.events.onOpen) {
+            this.config.events.onOpen(this);
+        }
+
+        return this;
+    }
+
+    /**
+     * Close the modal
+     */
+    close() {
+        if (!this.isModalOpen) return this;
+
+        this.modalElement.classList.remove('active');
+        document.body.style.overflow = 'auto';
+        this.isModalOpen = false;
+
+        // Pause audio if playing
+        if (this.audioPlayer) {
+            this.audioPlayer.pause();
+        }
+
+        // Call onClose callback
+        if (this.config.events.onClose) {
+            this.config.events.onClose(this);
+        }
+
+        return this;
+    }
+
+    /**
+     * Destroy the modal and clean up
+     */
+    destroy() {
+        if (this.isModalOpen) {
+            this.close();
+        }
+
+        // Clean up audio player
+        if (this.audioPlayer) {
+            this.audioPlayer.pause();
+            this.audioPlayer = null;
+        }
+
+        // Remove event listeners
+        this.boundEventHandlers.forEach((handlers, element) => {
+            handlers.forEach(({ event, handler }) => {
+                element.removeEventListener(event, handler);
+            });
+        });
+        this.boundEventHandlers.clear();
+
+        // Remove DOM elements
+        if (this.modalElement) {
+            this.modalElement.remove();
+            this.modalElement = null;
+        }
+
+        if (this.toastElement) {
+            this.toastElement.remove();
+            this.toastElement = null;
+        }
+
+        this.isInitialized = false;
+
+        return this;
+    }
+}
+
+// Export for different module systems
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = ZindeKalModal;
+} else if (typeof define === 'function' && define.amd) {
+    define([], function() { return ZindeKalModal; });
+} else {
+    window.ZindeKalModal = ZindeKalModal;
+}

@@ -1,0 +1,272 @@
+{
+  "modal": {
+    "title": "Zinde Kal",
+    "closeOnOverlay": true,
+    "closeOnEscape": true,
+    "showCloseButton": true
+  },
+  "tabs": {
+    "exercise": { 
+      "title": "Egzersiz Videoları", 
+      "enabled": true 
+    },
+    "relaxing": { 
+      "title": "Dinlendirici Videolar", 
+      "enabled": true 
+    },
+    "music": { 
+      "title": "Dinlendirici Müzikler", 
+      "enabled": true 
+    }
+  },
+  "exercise": {
+    "categories": [
+      {
+        "id": "ankle",
+        "title": "Ayak Bileği Egzersizi",
+        "icon": "ayak.svg",
+        "iconClass": "icon-ayak",
+        "videoCount": 2
+      },
+      {
+        "id": "shoulder-standing",
+        "title": "Ayakta Omuz Egzersizi",
+        "icon": "ayakta_omuz.svg",
+        "iconClass": "icon-omuz",
+        "videoCount": 6
+      },
+      {
+        "id": "shoulder-sitting",
+        "title": "Oturarak Omuz Egzersizi",
+        "icon": "oturarak_omuz.svg",
+        "iconClass": "icon-oturarak-omuz",
+        "videoCount": 4
+      },
+      {
+        "id": "walking",
+        "title": "Yürüyüş Egzersizi",
+        "icon": "yuruyus.svg",
+        "iconClass": "icon-yuruyus",
+        "videoCount": 3,
+        "badge": "Yeni"
+      },
+      {
+        "id": "eye",
+        "title": "Göz Egzersizi",
+        "icon": "goz.svg",
+        "iconClass": "icon-goz",
+        "videoCount": 3,
+        "badge": "Yeni"
+      },
+      {
+        "id": "back-standing",
+        "title": "Ayakta Bel Egzersizi",
+        "icon": "ayakta_bel.svg",
+        "iconClass": "icon-ayakta-bel",
+        "videoCount": 1,
+        "badge": "Yeni"
+      },
+      {
+        "id": "breathing",
+        "title": "Nefes Egzersizi",
+        "icon": "nefes.svg",
+        "iconClass": "icon-nefes",
+        "videoCount": 1,
+        "badge": "Yeni"
+      }
+    ],
+    "videos": [
+      {
+        "id": "ankle-1",
+        "categoryId": "ankle",
+        "title": "Ayak Bileği Egzersizi",
+        "description": "Bu egzersizde ayak bileği çevrilir, öne ve arkaya esneme yapılır, böylece eklem hareketliliği artırılır.",
+        "thumbnail": "images/exercise-feature.png",
+        "src": "videos/ankle-exercise-1.mp4",
+        "duration": "02dk 15s"
+      },
+      {
+        "id": "ankle-2",
+        "categoryId": "ankle",
+        "title": "Ayak Bileği Egzersizi",
+        "description": "Videoda ayakta durarak dairesel bilek döndürme, öne-arkaya esnetme ve yana açma hareketleri gösterilmektedir.",
+        "thumbnail": "images/exercise-feature.png",
+        "src": "videos/ankle-exercise-2.mp4",
+        "duration": "02dk 15s"
+      },
+      {
+        "id": "shoulder-1",
+        "categoryId": "shoulder-standing",
+        "title": "Ayakta Omuz Egzersizi 1",
+        "description": "Ayakta yapılan omuz egzersizleri ile kas gerginliğini azaltın.",
+        "thumbnail": "images/exercise-feature.png",
+        "src": "videos/shoulder-standing-1.mp4",
+        "duration": "03dk 20s"
+      },
+      {
+        "id": "shoulder-2",
+        "categoryId": "shoulder-sitting",
+        "title": "Oturarak Omuz Egzersizi 1",
+        "description": "Masada otururken yapabileceğiniz omuz egzersizleri.",
+        "thumbnail": "images/exercise-feature.png",
+        "src": "videos/shoulder-sitting-1.mp4",
+        "duration": "02dk 45s"
+      },
+      {
+        "id": "walking-1",
+        "categoryId": "walking",
+        "title": "Masada Yürüyüş",
+        "description": "Masada otururken ayak parmağı yürüyüşü egzersizi.",
+        "thumbnail": "images/exercise-feature.png",
+        "src": "videos/walking-1.mp4",
+        "duration": "01dk 30s"
+      },
+      {
+        "id": "eye-1",
+        "categoryId": "eye",
+        "title": "Göz Dinlendirme",
+        "description": "Ekran karşısında yorulan gözler için dinlendirici egzersizler.",
+        "thumbnail": "images/exercise-feature.png",
+        "src": "videos/eye-1.mp4",
+        "duration": "02dk 00s"
+      },
+      {
+        "id": "back-1",
+        "categoryId": "back-standing",
+        "title": "Bel Germe",
+        "description": "Ayakta yapılan bel germe ve güçlendirme egzersizi.",
+        "thumbnail": "images/exercise-feature.png",
+        "src": "videos/back-1.mp4",
+        "duration": "03dk 15s"
+      },
+      {
+        "id": "breathing-1",
+        "categoryId": "breathing",
+        "title": "Derin Nefes",
+        "description": "Stres azaltıcı derin nefes alma teknikleri.",
+        "thumbnail": "images/exercise-feature.png",
+        "src": "videos/breathing-1.mp4",
+        "duration": "04dk 00s"
+      }
+    ]
+  },
+  "relaxing": {
+    "videos": [
+      {
+        "id": "peaceful-1",
+        "title": "Dinlendirici Video",
+        "description": "Rahatlatıcı doğa sesleri ve görüntüleri ile kendinizi dinlendirin.",
+        "thumbnail": "images/peaceful-1.png",
+        "src": "videos/peaceful-nature-1.mp4",
+        "duration": "05:30"
+      },
+      {
+        "id": "peaceful-2",
+        "title": "Nefes Egzersizi",
+        "description": "Derin nefes teknikleri ile stresinizi azaltın ve rahatlatın.",
+        "thumbnail": "images/peaceful-2.png",
+        "src": "videos/breathing-exercise.mp4",
+        "duration": "03:45"
+      },
+      {
+        "id": "peaceful-3",
+        "title": "Meditasyon",
+        "description": "Rehberli meditasyon seansı ile zihinsel rahatlama.",
+        "thumbnail": "images/peaceful-1.png",
+        "src": "videos/meditation.mp4",
+        "duration": "08:20"
+      },
+      {
+        "id": "peaceful-4",
+        "title": "Okyanus Sesleri",
+        "description": "Sakinleştirici okyanus dalgaları ve doğa sesleri.",
+        "thumbnail": "images/peaceful-2.png",
+        "src": "videos/ocean-sounds.mp4",
+        "duration": "10:00"
+      }
+    ]
+  },
+  "music": {
+    "currentTrack": 1,
+    "autoplay": false,
+    "tracks": [
+      {
+        "id": "track-1",
+        "title": "Sessiz Akşam",
+        "artist": "Dinlendirici Müzikler",
+        "src": "music/sessiz-aksam.mp3",
+        "duration": "4:12"
+      },
+      {
+        "id": "track-2",
+        "title": "Huzur Melodisi",
+        "artist": "Dinlendirici Müzikler",
+        "src": "music/huzur-melodisi.mp3",
+        "duration": "3:28"
+      },
+      {
+        "id": "track-3",
+        "title": "Doğa Sesleri",
+        "artist": "Dinlendirici Müzikler",
+        "src": "music/doga-sesleri.mp3",
+        "duration": "5:15"
+      },
+      {
+        "id": "track-4",
+        "title": "Rahatlatıcı Piyano",
+        "artist": "Dinlendirici Müzikler",
+        "src": "music/rahatlatici-piyano.mp3",
+        "duration": "4:42"
+      },
+      {
+        "id": "track-5",
+        "title": "Meditasyon Müziği",
+        "artist": "Dinlendirici Müzikler",
+        "src": "music/meditasyon-muzigi.mp3",
+        "duration": "6:18"
+      },
+      {
+        "id": "track-6",
+        "title": "Yağmur Sesi",
+        "artist": "Doğa Sesleri",
+        "src": "music/yagmur-sesi.mp3",
+        "duration": "7:45"
+      },
+      {
+        "id": "track-7",
+        "title": "Flüt Melodisi",
+        "artist": "Klasik Enstrümanlar",
+        "src": "music/flut-melodisi.mp3",
+        "duration": "3:56"
+      },
+      {
+        "id": "track-8",
+        "title": "Zen Bahçesi",
+        "artist": "Meditasyon",
+        "src": "music/zen-bahcesi.mp3",
+        "duration": "8:22"
+      }
+    ]
+  },
+  "toast": {
+    "enabled": true,
+    "message": "MEBİ'de 2 saattir çalışıyorsunuz. Kısa bir mola vermek ister misiniz? Hadi, şimdi küçük bir egzersiz yapma zamanı!",
+    "icon": "images/kanka_head.png",
+    "autoHideDelay": 5000
+  },
+  "assets": {
+    "basePath": "images/",
+    "icons": {
+      "close": "close.svg",
+      "closeActive": "close-active.svg",
+      "play": "play.svg",
+      "pause": "pause.svg",
+      "next": "next.svg",
+      "prev": "prev.svg",
+      "playSmall": "play-sm.svg",
+      "thumbnailPlay": "thumbnail-play.svg",
+      "muted": "muted.svg",
+      "unmuted": "unmuted.svg"
+    }
+  }
+}
