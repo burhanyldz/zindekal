@@ -573,7 +573,11 @@ class ZindeKalModal {
         this.addEventHandler(this.modalElement, 'input', (e) => {
             if (e.target.classList.contains('volume-slider')) {
                 const volume = parseFloat(e.target.value);
-                this.updateVolume(volume);
+                if (this.audioPlayer) {
+                    this.audioPlayer.updateVolumeFromSlider(volume);
+                } else {
+                    this.updateVolume(volume);
+                }
             }
         });
 
@@ -616,7 +620,12 @@ class ZindeKalModal {
         } else if (categoryElement) {
             this.selectCategory(categoryElement.dataset.category);
         } else if (trackElement) {
-            this.selectTrack(parseInt(trackElement.dataset.trackIndex));
+            const trackIndex = parseInt(trackElement.dataset.trackIndex);
+            if (this.audioPlayer) {
+                this.audioPlayer.selectTrack(trackIndex);
+            } else {
+                this.selectTrack(trackIndex);
+            }
         }
     }
 
@@ -635,19 +644,31 @@ class ZindeKalModal {
                 }
                 break;
             case 'toggle-play':
-                this.toggleAudioPlay();
+                if (this.audioPlayer) {
+                    this.audioPlayer.togglePlay();
+                }
                 break;
             case 'prev-track':
-                this.previousTrack();
+                if (this.audioPlayer) {
+                    this.audioPlayer.previousTrack();
+                }
                 break;
             case 'next-track':
-                this.nextTrack();
+                if (this.audioPlayer) {
+                    this.audioPlayer.nextTrack();
+                }
                 break;
             case 'toggle-audio-mute':
-                this.toggleAudioMute();
+                if (this.audioPlayer) {
+                    this.audioPlayer.toggleMute();
+                }
                 break;
             case 'toggle-volume':
-                this.toggleVolumePopup();
+                if (this.audioPlayer) {
+                    this.audioPlayer.toggleVolumePopup();
+                } else {
+                    this.toggleVolumePopup();
+                }
                 break;
         }
     }
@@ -757,44 +778,32 @@ class ZindeKalModal {
      */
     initializeAudioPlayer() {
         const musicPlayerFooter = this.modalElement.querySelector('.music-player');
-        const currentTrack = this.config.music.tracks[this.config.music.currentTrack];
         
-        if (musicPlayerFooter && currentTrack && !this.audioPlayer) {
+        if (musicPlayerFooter && this.config.music.tracks.length > 0 && !this.audioPlayer) {
             // Import the existing EmbeddedAudioPlayer class
             if (typeof EmbeddedAudioPlayer !== 'undefined') {
                 this.audioPlayer = new EmbeddedAudioPlayer({
                     container: musicPlayerFooter,
-                    track: {
-                        title: currentTrack.title,
-                        album: currentTrack.artist || 'Unknown Artist',
-                        src: currentTrack.src
-                    },
-                    autoplay: this.config.music.autoplay
+                    tracks: this.config.music.tracks,
+                    currentTrackIndex: this.config.music.currentTrack,
+                    track: this.config.music.tracks[this.config.music.currentTrack],
+                    autoplay: this.config.music.autoplay,
+                    modalInstance: this,
+                    config: this.config
                 });
 
-                // Bind to audio events to manage visual state
+                // Bind audio events for callbacks
                 if (this.audioPlayer.audio) {
                     this.audioPlayer.audio.addEventListener('play', () => {
-                        this.showPlayingAnimation(this.config.music.currentTrack);
-                        this.updatePlayingState(true);
                         if (this.config.events.onAudioPlay) {
-                            this.config.events.onAudioPlay(currentTrack, this);
+                            this.config.events.onAudioPlay(this.config.music.tracks[this.config.music.currentTrack], this);
                         }
                     });
 
                     this.audioPlayer.audio.addEventListener('pause', () => {
-                        this.hidePlayingAnimation();
-                        this.updatePlayingState(false);
                         if (this.config.events.onAudioPause) {
-                            this.config.events.onAudioPause(currentTrack, this);
+                            this.config.events.onAudioPause(this.config.music.tracks[this.config.music.currentTrack], this);
                         }
-                    });
-
-                    this.audioPlayer.audio.addEventListener('ended', () => {
-                        this.hidePlayingAnimation();
-                        this.updatePlayingState(false);
-                        // Auto-play next track
-                        this.nextTrack();
                     });
                 }
             } else {
@@ -805,23 +814,56 @@ class ZindeKalModal {
         return this;
     }
 
+    // Helper methods for audio player integration
+    
+    /**
+     * Update track display in player footer
+     */
+    updateTrackDisplay(trackIndex, track) {
+        // Update current track index in config
+        this.config.music.currentTrack = trackIndex;
+        
+        // Update player details
+        const playerDetails = this.modalElement.querySelector('.player-song-details');
+        if (playerDetails) {
+            const titleElement = playerDetails.querySelector('.player-song-title');
+            const artistElement = playerDetails.querySelector('.player-song-artist');
+            
+            if (titleElement) titleElement.textContent = track.title;
+            if (artistElement) artistElement.textContent = track.artist || 'Unknown Artist';
+        }
+        
+        return this;
+    }
+    
+    /**
+     * Update playlist visual state
+     */
+    updatePlaylistVisualState(trackIndex) {
+        this.modalElement.querySelectorAll('.playlist-item').forEach((item, index) => {
+            item.classList.toggle('active', index === trackIndex);
+            // Clear playing state for all items
+            item.classList.remove('playing');
+            
+            const songInfo = item.querySelector('.song-info');
+            const canvas = songInfo.querySelector('canvas');
+            
+            // Remove any existing canvas animations
+            if (canvas) {
+                canvas.remove();
+            }
+        });
+        
+        return this;
+    }
+
     /**
      * Toggle audio play/pause
+     * @deprecated Use audioPlayer.togglePlay() instead
      */
     toggleAudioPlay() {
         if (this.audioPlayer) {
-            if (this.audioPlayer.isPlaying) {
-                this.audioPlayer.pause();
-                this.hidePlayingAnimation();
-                this.updatePlayingState(false);
-            } else {
-                this.audioPlayer.play().then(() => {
-                    this.showPlayingAnimation(this.config.music.currentTrack);
-                    this.updatePlayingState(true);
-                }).catch(e => {
-                    console.log('Play was prevented:', e);
-                });
-            }
+            this.audioPlayer.togglePlay();
         }
 
         return this;
@@ -829,22 +871,11 @@ class ZindeKalModal {
 
     /**
      * Play previous track
+     * @deprecated Use audioPlayer.previousTrack() instead
      */
     previousTrack() {
-        if (this.config.music.tracks.length === 0) return this;
-
-        const wasPlaying = this.audioPlayer && this.audioPlayer.isPlaying;
-        const newIndex = this.config.music.currentTrack > 0 
-            ? this.config.music.currentTrack - 1 
-            : this.config.music.tracks.length - 1;
-
-        this.switchTrack(newIndex);
-        
-        // If audio was playing, continue playing the new track
-        if (wasPlaying && this.audioPlayer) {
-            this.audioPlayer.play().catch(e => {
-                console.log('Play was prevented:', e);
-            });
+        if (this.audioPlayer) {
+            this.audioPlayer.previousTrack();
         }
         
         return this;
@@ -852,22 +883,11 @@ class ZindeKalModal {
 
     /**
      * Play next track
+     * @deprecated Use audioPlayer.nextTrack() instead
      */
     nextTrack() {
-        if (this.config.music.tracks.length === 0) return this;
-
-        const wasPlaying = this.audioPlayer && this.audioPlayer.isPlaying;
-        const newIndex = this.config.music.currentTrack < this.config.music.tracks.length - 1
-            ? this.config.music.currentTrack + 1
-            : 0;
-
-        this.switchTrack(newIndex);
-        
-        // If audio was playing, continue playing the new track
-        if (wasPlaying && this.audioPlayer) {
-            this.audioPlayer.play().catch(e => {
-                console.log('Play was prevented:', e);
-            });
+        if (this.audioPlayer) {
+            this.audioPlayer.nextTrack();
         }
         
         return this;
@@ -875,27 +895,11 @@ class ZindeKalModal {
 
     /**
      * Select and play a specific track
+     * @deprecated Use audioPlayer.selectTrack() instead
      */
     selectTrack(trackIndex) {
-        if (trackIndex >= 0 && trackIndex < this.config.music.tracks.length) {
-            // If clicking the same track that's currently selected
-            if (trackIndex === this.config.music.currentTrack) {
-                // Toggle play/pause instead of restarting
-                this.toggleAudioPlay();
-            } else {
-                // Switch to new track and start playing
-                this.switchTrack(trackIndex);
-                
-                // Start playing the selected track
-                if (this.audioPlayer) {
-                    this.audioPlayer.play().then(() => {
-                        // Show playing animation for the selected track
-                        this.showPlayingAnimation(trackIndex);
-                    }).catch(e => {
-                        console.log('Play was prevented:', e);
-                    });
-                }
-            }
+        if (this.audioPlayer) {
+            this.audioPlayer.selectTrack(trackIndex);
         }
 
         return this;
@@ -995,42 +999,23 @@ class ZindeKalModal {
 
     /**
      * Switch to a specific track
+     * @deprecated Use audioPlayer.switchToTrack() instead - kept for fallback compatibility
      */
     switchTrack(trackIndex) {
-        if (trackIndex < 0 || trackIndex >= this.config.music.tracks.length) {
-            return this;
-        }
-
-        const oldIndex = this.config.music.currentTrack;
-        this.config.music.currentTrack = trackIndex;
-        const newTrack = this.config.music.tracks[trackIndex];
-
-        // Update playlist visual state
-        this.modalElement.querySelectorAll('.playlist-item').forEach((item, index) => {
-            item.classList.toggle('active', index === trackIndex);
-            // Clear playing state for all items
-            item.classList.remove('playing');
-            
-            const songInfo = item.querySelector('.song-info');
-            const canvas = songInfo.querySelector('canvas');
-            
-            // Remove any existing canvas animations
-            if (canvas) {
-                canvas.remove();
+        if (this.audioPlayer) {
+            this.audioPlayer.switchToTrack(trackIndex);
+        } else {
+            // Fallback for direct usage without audio player
+            if (trackIndex < 0 || trackIndex >= this.config.music.tracks.length) {
+                return this;
             }
-        });
 
-        // Update player details
-        const playerDetails = this.modalElement.querySelector('.player-song-details');
-        if (playerDetails) {
-            playerDetails.querySelector('.player-song-title').textContent = newTrack.title;
-            playerDetails.querySelector('.player-song-artist').textContent = newTrack.artist || 'Unknown Artist';
-        }
+            const oldIndex = this.config.music.currentTrack;
+            this.config.music.currentTrack = trackIndex;
+            const newTrack = this.config.music.tracks[trackIndex];
 
-        // Update audio player
-        if (this.audioPlayer && newTrack.src) {
-            this.audioPlayer.audio.src = newTrack.src;
-            this.audioPlayer.audio.load();
+            this.updatePlaylistVisualState(trackIndex);
+            this.updateTrackDisplay(trackIndex, newTrack);
         }
 
         return this;
@@ -1038,12 +1023,11 @@ class ZindeKalModal {
 
     /**
      * Toggle audio mute
+     * @deprecated Use audioPlayer.toggleMute() instead
      */
     toggleAudioMute() {
         if (this.audioPlayer) {
             this.audioPlayer.toggleMute();
-            // Update the volume popup UI to reflect mute state
-            this.updateVolumePopupUI();
         }
 
         return this;

@@ -1,10 +1,14 @@
-// SimFilelified AudioPlayer for embedded use in modal
+// Enhanced AudioPlayer for embedded use in modal with playlist management
 class EmbeddedAudioPlayer {
     constructor(options = {}) {
         this.options = {
             track: options.track || {},
+            tracks: options.tracks || [],
+            currentTrackIndex: options.currentTrackIndex || 0,
             autoplay: options.autoplay || false,
             container: options.container || null,
+            modalInstance: options.modalInstance || null,
+            config: options.config || {},
             ...options
         };
         
@@ -26,7 +30,14 @@ class EmbeddedAudioPlayer {
     }
     
     setupAudio() {
-        if (this.options.track.src) {
+        // Set initial track
+        if (this.options.tracks && this.options.tracks.length > 0) {
+            const currentTrack = this.options.tracks[this.options.currentTrackIndex];
+            if (currentTrack && currentTrack.src) {
+                this.audio.src = currentTrack.src;
+                this.options.track = currentTrack;
+            }
+        } else if (this.options.track.src) {
             this.audio.src = this.options.track.src;
         }
         
@@ -48,18 +59,57 @@ class EmbeddedAudioPlayer {
             this.isPlaying = false;
             this.updatePlayButton();
             this._stopPlayedInterval();
+            
+            // Auto-play next track if tracks are available
+            if (this.options.tracks && this.options.tracks.length > 1) {
+                // Calculate next track index
+                const currentIndex = this.options.currentTrackIndex;
+                const nextIndex = currentIndex < this.options.tracks.length - 1
+                    ? currentIndex + 1
+                    : 0;
+                
+                // Switch to next track
+                this.switchToTrack(nextIndex);
+                
+                // If autoplay is enabled, start playing the next track
+                if (this.options.autoplay) {
+                    this.play().catch(e => {
+                        console.log('Autoplay was prevented:', e);
+                    });
+                }
+            }
         });
         
         this.audio.addEventListener('play', () => {
             this.isPlaying = true;
             this.updatePlayButton();
             this._startPlayedInterval();
+            
+            // Notify modal about play event
+            if (this.options.modalInstance) {
+                if (this.options.modalInstance.showPlayingAnimation) {
+                    this.options.modalInstance.showPlayingAnimation(this.options.currentTrackIndex);
+                }
+                if (this.options.modalInstance.updatePlayingState) {
+                    this.options.modalInstance.updatePlayingState(true);
+                }
+            }
         });
         
         this.audio.addEventListener('pause', () => {
             this.isPlaying = false;
             this.updatePlayButton();
             this._stopPlayedInterval();
+            
+            // Notify modal about pause event
+            if (this.options.modalInstance) {
+                if (this.options.modalInstance.hidePlayingAnimation) {
+                    this.options.modalInstance.hidePlayingAnimation();
+                }
+                if (this.options.modalInstance.updatePlayingState) {
+                    this.options.modalInstance.updatePlayingState(false);
+                }
+            }
         });
     }
     
@@ -75,7 +125,12 @@ class EmbeddedAudioPlayer {
         this.progressBarFilled = this.options.container.querySelector('.progress-bar-filled');
         this.progressBarThumb = this.options.container.querySelector('.progress-bar-thumb');
         this.timeDisplay = this.options.container.querySelector('.time-display');
-        this.volumeButton = this.options.container.querySelector('.volume-button');
+        
+        // Navigation and volume controls are handled by modal's event delegation system
+        // this.prevButton = this.options.container.querySelector('[data-action="prev-track"]');
+        // this.nextButton = this.options.container.querySelector('[data-action="next-track"]');
+        // this.volumeButton = this.options.container.querySelector('.volume-button');
+        // this.volumeMuteButton = this.options.container.querySelector('[data-action="toggle-audio-mute"]');
         
         // Store initial play/pause icons
         this.playIcon = this.playButton?.querySelector('img');
@@ -87,12 +142,10 @@ class EmbeddedAudioPlayer {
     }
     
     bindEvents() {
-        // Play/pause button
-        if (this.playButton) {
-            this.playButton.addEventListener('click', () => this.togglePlay());
-        }
+        // All control buttons are handled by modal's event delegation system
+        // to avoid double event binding conflicts
         
-        // Progress bar interaction
+        // Progress bar interaction - Safe to handle directly as it doesn't use data-action
         if (this.progressBar) {
             this.progressBar.addEventListener('mousedown', (e) => this.startDrag(e));
             this.progressBar.addEventListener('click', (e) => this.seekToPosition(e));
@@ -101,16 +154,6 @@ class EmbeddedAudioPlayer {
         // Global mouse events for dragging
         document.addEventListener('mousemove', (e) => this.drag(e));
         document.addEventListener('mouseup', () => this.endDrag());
-    }
-    
-    togglePlay() {
-        if (this.isPlaying) {
-            this.audio.pause();
-        } else {
-            this.audio.play().catch(e => {
-                console.log('Play was prevented:', e);
-            });
-        }
     }
     
     updatePlayButton() {
@@ -180,39 +223,27 @@ class EmbeddedAudioPlayer {
     
     toggleMute() {
         if (this.isMuted) {
+            // Unmute: restore previous volume (or set to 0.5 if previous was 0)
             this.isMuted = false;
-            this.volume = this.previousVolume;
+            this.volume = this.previousVolume > 0 ? this.previousVolume : 0.5;
             this.audio.volume = this.volume;
+            this.audio.muted = false;
         } else {
-            this.previousVolume = this.volume;
+            // Mute: save current volume and set to 0
+            this.previousVolume = this.volume > 0 ? this.volume : 0.5;
             this.isMuted = true;
             this.volume = 0;
             this.audio.volume = 0;
+            this.audio.muted = true;
         }
         
-        this.audio.muted = this.isMuted;
         this.updateVolumeButton();
     }
     
     updateVolumeButton() {
-        if (!this.volumeButton) return;
-        
-        const volumeIcon = this.volumeButton.querySelector('img');
-        if (!volumeIcon) return;
-        
-        // Store original icon source for unmuted state
-        if (!this.originalVolumeIcon) {
-            this.originalVolumeIcon = volumeIcon.src;
-        }
-        
-        if (this.isMuted) {
-            // Change to muted icon (try to find a muted version by replacing the icon number)
-            volumeIcon.src = this.originalVolumeIcon.replace('unmuted', 'muted'); // Replace with muted icon if available
-            volumeIcon.alt = 'Unmute';
-        } else {
-            // Change to unmuted icon
-            volumeIcon.src = this.originalVolumeIcon;
-            volumeIcon.alt = 'Volume';
+        // Delegate volume button updates to modal since modal handles the UI
+        if (this.options.modalInstance && this.options.modalInstance.updateVolumePopupUI) {
+            this.options.modalInstance.updateVolumePopupUI();
         }
     }
     
@@ -239,10 +270,41 @@ class EmbeddedAudioPlayer {
         this.audio.pause();
     }
     
+    togglePlay() {
+        if (this.isPlaying) {
+            this.audio.pause();
+        } else {
+            this.audio.play().catch(e => {
+                console.log('Play was prevented:', e);
+            });
+        }
+    }
+    
     setVolume(volume) {
-        this.volume = Math.max(0, Math.min(1, volume));
-        this.audio.volume = this.volume;
-        this.updateVolumeButton();
+        volume = Math.max(0, Math.min(1, volume));
+        
+        // Handle automatic mute/unmute based on volume level
+        if (volume === 0 && !this.isMuted) {
+            // Volume set to 0, should be marked as muted
+            this.isMuted = true;
+            this.audio.muted = true;
+        } else if (volume > 0 && this.isMuted) {
+            // Volume moved above 0 while muted, should be unmuted
+            this.isMuted = false;
+            this.audio.muted = false;
+            this.previousVolume = volume;
+        } else if (!this.isMuted) {
+            // Normal volume change while not muted
+            this.previousVolume = volume;
+        }
+        
+        this.volume = volume;
+        this.audio.volume = volume;
+        
+        // Volume UI updates are handled by modal
+        if (this.options.modalInstance && this.options.modalInstance.updateVolumePopupUI) {
+            this.options.modalInstance.updateVolumePopupUI();
+        }
     }
     
     getCurrentTime() {
@@ -255,5 +317,149 @@ class EmbeddedAudioPlayer {
     
     getPlayedSeconds() {
         return this.playedSeconds;
+    }
+    
+    // Track navigation methods
+    nextTrack() {
+        if (!this.options.tracks || this.options.tracks.length === 0) return this;
+
+        const wasPlaying = this.isPlaying;
+        
+        // Calculate next index
+        const currentIndex = this.options.currentTrackIndex;
+        const newIndex = currentIndex < this.options.tracks.length - 1
+            ? currentIndex + 1
+            : 0;
+        
+        this.switchToTrack(newIndex);
+        
+        // If audio was playing, continue playing the new track
+        if (wasPlaying) {
+            this.play().catch(e => {
+                console.log('Play was prevented:', e);
+            });
+        }
+        
+        return this;
+    }
+    
+    previousTrack() {
+        if (!this.options.tracks || this.options.tracks.length === 0) return this;
+
+        const wasPlaying = this.isPlaying;
+        
+        // Calculate previous index
+        const currentIndex = this.options.currentTrackIndex;
+        const newIndex = currentIndex > 0 
+            ? currentIndex - 1 
+            : this.options.tracks.length - 1;
+        
+        this.switchToTrack(newIndex);
+        
+        // If audio was playing, continue playing the new track
+        if (wasPlaying) {
+            this.play().catch(e => {
+                console.log('Play was prevented:', e);
+            });
+        }
+        
+        return this;
+    }
+    
+    selectTrack(trackIndex) {
+        if (!this.options.tracks || trackIndex < 0 || trackIndex >= this.options.tracks.length) return;
+        
+        // If clicking the same track that's currently selected
+        if (trackIndex === this.options.currentTrackIndex) {
+            // Toggle play/pause instead of restarting
+            this.togglePlay();
+        } else {
+            // Switch to new track and start playing
+            this.switchToTrack(trackIndex);
+            
+            // Start playing the selected track
+            this.play().then(() => {
+                // Notify modal about playing animation for the selected track
+                if (this.options.modalInstance && this.options.modalInstance.showPlayingAnimation) {
+                    this.options.modalInstance.showPlayingAnimation(trackIndex);
+                }
+            }).catch(e => {
+                console.log('Play was prevented:', e);
+            });
+        }
+        
+        return this;
+    }
+    
+    // Renamed from switchTrack to avoid confusion with modal's switchTrack method
+    switchToTrack(trackIndex) {
+        if (!this.options.tracks || trackIndex < 0 || trackIndex >= this.options.tracks.length) {
+            return this;
+        }
+
+        const oldIndex = this.options.currentTrackIndex;
+        
+        // Update our current track index
+        this.options.currentTrackIndex = trackIndex;
+        const newTrack = this.options.tracks[trackIndex];
+
+        // Update current track data
+        this.options.track = newTrack;
+
+        // Update audio source
+        if (newTrack.src) {
+            this.audio.src = newTrack.src;
+            this.audio.load();
+        }
+
+        // Notify modal to update visual states AND sync the modal's current track
+        if (this.options.modalInstance) {
+            // Sync the modal's config with our current track index
+            if (this.options.modalInstance.config && this.options.modalInstance.config.music) {
+                this.options.modalInstance.config.music.currentTrack = trackIndex;
+            }
+            
+            if (this.options.modalInstance.updateTrackDisplay) {
+                this.options.modalInstance.updateTrackDisplay(trackIndex, newTrack);
+            }
+            if (this.options.modalInstance.updatePlaylistVisualState) {
+                this.options.modalInstance.updatePlaylistVisualState(trackIndex);
+            }
+        }
+
+        return this;
+    }
+    
+    // Volume popup control methods
+    toggleVolumePopup() {
+        if (this.options.modalInstance && this.options.modalInstance.toggleVolumePopup) {
+            this.options.modalInstance.toggleVolumePopup();
+        }
+        return this;
+    }
+    
+    showVolumePopup() {
+        if (this.options.modalInstance && this.options.modalInstance.showVolumePopup) {
+            this.options.modalInstance.showVolumePopup();
+        }
+        return this;
+    }
+    
+    hideVolumePopup() {
+        if (this.options.modalInstance && this.options.modalInstance.hideVolumePopup) {
+            this.options.modalInstance.hideVolumePopup();
+        }
+        return this;
+    }
+    
+    updateVolumeFromSlider(volume) {
+        this.setVolume(volume);
+        
+        // Notify modal to update volume UI
+        if (this.options.modalInstance && this.options.modalInstance.updateVolumePopupUI) {
+            this.options.modalInstance.updateVolumePopupUI();
+        }
+        
+        return this;
     }
 }
