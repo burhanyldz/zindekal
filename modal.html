@@ -12,6 +12,7 @@
     
   </style>
   <script src="global.js" defer></script>
+  <script src="audio-player.js" defer></script>
 </head>
 <body>
   <!-- Button Container -->
@@ -260,43 +261,37 @@
           <div class="player-controls-container">
             <div class="player-controls">
               <button class="control-button">
-                <img src="images/I40002093_48242_40002110_17737.svg" alt="Shuffle">
-              </button>
-              <button class="control-button">
                 <img src="images/I40002093_48242_40002093_47916.svg" alt="Previous">
               </button>
-              <button class="control-button">
-                <img src="images/I40002093_48242_40002093_47925.svg" alt="Play">
+              <button class="control-button play-pause-button">
+                <img src="images/play.svg" alt="Play">
               </button>
               <button class="control-button">
                 <img src="images/I40002093_48242_40002093_47919.svg" alt="Next">
               </button>
-              <button class="control-button">
-                <img src="images/I40002093_48242_40002110_17816.svg" alt="Repeat">
-              </button>
             </div>
             <div class="progress-bar-container">
-              <div class="progress-bar">
+              <div class="progress-bar" style="cursor: pointer;">
                 <div class="progress-bar-filled" style="width: 23.5%;"></div>
                 <div class="progress-bar-thumb" style="left: 23.5%;"></div>
               </div>
               <div class="time-display">
                 <span>00:49</span> / <span>03:28</span>
               </div>
-              <button class="control-button">
-                <img src="images/I40002093_48242_40002093_47877.svg" alt="Volume">
+              <button class="control-button volume-button">
+                <img src="images/unmuted.svg" alt="Volume">
               </button>
             </div>
           </div>
-          <button class="control-button">
-            <img src="images/I40002093_48242_40002110_44027.svg" alt="Fullscreen">
-          </button>
         </footer>
       </div>
     </div>
   </div>
 
   <script>
+    // Audio player instance
+    let audioPlayer = null;
+
     // Modal functionality
     function openModal() {
       document.getElementById('modalOverlay').classList.add('active');
@@ -310,6 +305,11 @@
       }
       document.getElementById('modalOverlay').classList.remove('active');
       document.body.style.overflow = 'auto'; // Restore scrolling
+      
+      // Stop audio if playing
+      if (audioPlayer) {
+        audioPlayer.pause();
+      }
     }
 
     // Tab switching functionality
@@ -329,6 +329,27 @@
       };
       
       document.getElementById(tabContentMap[tabName]).classList.add('active');
+      
+      // Initialize audio player when music tab is selected
+      if (tabName === 'music' && !audioPlayer) {
+        initializeAudioPlayer();
+      }
+    }
+
+    // Initialize audio player for the music tab
+    function initializeAudioPlayer() {
+      const musicPlayerFooter = document.querySelector('.music-player');
+      if (musicPlayerFooter && !audioPlayer) {
+        audioPlayer = new EmbeddedAudioPlayer({
+          container: musicPlayerFooter,
+          track: {
+            title: 'Huzur Melodisi',
+            album: 'Dinlendirici Müzikler',
+            src: 'Vivaldi - The Four Seasons.mp3'
+          },
+          autoplay: false
+        });
+      }
     }
 
     // Close modal with Escape key
@@ -364,6 +385,15 @@
       const toast = document.getElementById('toastNotification');
       toast.classList.remove('show');
     }
+
+    // Initialize audio player when DOM is loaded if music tab is already active
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check if music tab is initially active
+      const musicTab = document.getElementById('music-tab');
+      if (musicTab && musicTab.classList.contains('active')) {
+        initializeAudioPlayer();
+      }
+    });
   </script>
 </body>
 </html>
