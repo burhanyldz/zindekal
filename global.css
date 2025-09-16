@@ -778,6 +778,7 @@ body {
   .modal-overlay .modal-container .tab-content {
     flex: 1;
     overflow-y: auto;
+    padding: 0 10px;
     /* Ensure video tabs have proper scrolling on mobile */
   }
   .modal-overlay .modal-container .tab-content.active {
@@ -785,6 +786,7 @@ body {
     flex-direction: column;
   }
   .modal-overlay .modal-container .tab-content#music-tab .music-content {
+    padding: 10px !important;
     flex: 1;
     overflow-y: auto;
   }
@@ -934,26 +936,10 @@ body {
   border-radius: 2px;
   outline: none;
   cursor: pointer;
+  accent-color: var(--color-primary);
 }
-.volume-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-          appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-.volume-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+.volume-slider ::-webkit-slider-thumb {
+  accent-color: var(--color-secondary-blue);
 }
 
 .volume-percentage {

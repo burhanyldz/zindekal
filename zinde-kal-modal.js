@@ -573,6 +573,11 @@ class ZindeKalModal {
         this.addEventHandler(this.modalElement, 'input', (e) => {
             if (e.target.classList.contains('volume-slider')) {
                 const volume = parseFloat(e.target.value);
+                const percent = Math.round(volume * 100) + '%';
+
+                // Update CSS variable to show the fill
+                e.target.style.setProperty('--range-fill-percent', percent);
+
                 if (this.audioPlayer) {
                     this.audioPlayer.updateVolumeFromSlider(volume);
                 } else {
@@ -1090,6 +1095,9 @@ class ZindeKalModal {
 
         if (volumeSlider) {
             volumeSlider.value = this.audioPlayer.volume;
+            // update the CSS custom property to show the fill percent
+            const percent = Math.round(this.audioPlayer.volume * 100) + '%';
+            volumeSlider.style.setProperty('--range-fill-percent', percent);
         }
 
         if (volumePercentage) {
