@@ -185,9 +185,13 @@ body {
     display: none;
     padding: 24px;
     padding-top: 20px;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0; /* Allow flex shrinking */
 
     &.active {
-        display: block;
+        display: flex;
+        flex-direction: column;
     }
 
     &#music-tab {
@@ -199,6 +203,15 @@ body {
         &.active {
             display: flex !important;
             flex-direction: column;
+        }
+    }
+
+    /* For exercise and relaxing tabs - ensure scrollable content */
+    &#exercise-tab, &#relaxing-tab {
+        &.active {
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
         }
     }
 }
@@ -275,6 +288,11 @@ body {
     overflow-x: auto;
     white-space: nowrap;
     padding: 10px 0 20px 0;
+    flex-shrink: 0; /* Don't shrink this navigation */
+    position: sticky;
+    top: 0;
+    background-color: var(--color-background-widget);
+    z-index: 10;
 
     // Custom horizontal scrollbar styling
     &::-webkit-scrollbar {
@@ -370,6 +388,8 @@ body {
     gap: 12px;
     padding: 10px 0;
     justify-content: center;
+    flex: 1;
+    overflow-y: visible; /* Let parent handle scrolling */
 
     .video-card {
         background-color: var(--color-background-card);
@@ -641,6 +661,18 @@ body {
         flex-direction: column;
         width: 160px; // Fixed width to prevent button movement
         flex-shrink: 0; // Prevent shrinking
+
+        .player-song-title-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            #player-playing-riv {
+                width: 24px;
+                height: 24px;
+                flex-shrink: 0;
+            }
+        }
 
         .player-song-title {
             font-size: 16px;
@@ -940,5 +972,121 @@ body {
     color: var(--color-text-medium);
     min-width: 35px;
     text-align: right;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    // 1. Widget header mobile padding
+    .widget-header {
+        padding: 24px 0px 0px 0px;
+    }
+
+    // 2. Full screen modal
+    .modal-overlay {
+        padding: 0;
+        
+        .modal-container {
+            max-width: 100%;
+            width: 100%;
+            max-height: 100vh;
+            min-height: 100vh;
+            border-radius: 0;
+            
+            .tab-content {
+                flex: 1;
+                overflow-y: auto;
+                
+                &.active {
+                    display: flex;
+                    flex-direction: column;
+                }
+                
+                &#music-tab {
+                    .music-content {
+                        flex: 1;
+                        overflow-y: auto;
+                    }
+                }
+
+                /* Ensure video tabs have proper scrolling on mobile */
+                &#exercise-tab, &#relaxing-tab {
+                    &.active {
+                        display: flex;
+                        flex-direction: column;
+                        overflow-y: auto;
+                    }
+                }
+            }
+        }
+    }
+
+    // 3. Mobile music player redesign
+    .music-player {
+        flex-direction: column;
+        height: auto;
+        padding: 0;
+        gap: 0;
+        
+        // Time bar at top
+        .progress-bar-container {
+            order: -1;
+            width: 100%;
+            padding: 0;
+            
+            .progress-bar {
+                height: 3px;
+                border-radius: 0;
+                
+                .progress-bar-filled {
+                    border-radius: 0;
+                }
+                
+                .progress-bar-thumb {
+                    display: none;
+                }
+            }
+            
+            .time-display {
+                display: none;
+            }
+            
+            .volume-control-container {
+                display: none;
+            }
+        }
+        
+        .player-song-details {
+            padding: 16px 24px;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .player-controls-container {
+            display: none;
+        }
+    }
+
+    // 4. Video grid responsive layout
+    .video-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 16px 0;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    // 4. Video grid - 2 columns on medium screens
+    .video-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+}
+
+@media (min-width: 1025px) {
+    // 4. Video grid - 3 columns on large screens
+    .video-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
 }
 

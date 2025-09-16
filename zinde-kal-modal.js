@@ -449,7 +449,10 @@ class ZindeKalModal {
         return `
             <footer class="music-player">
                 <div class="player-song-details">
-                    <span class="player-song-title">${currentTrack.title}</span>
+                    <div class="player-song-title-container">
+                        <canvas id="player-playing-riv" width="24" height="24" style="display: none;"></canvas>
+                        <span class="player-song-title">${currentTrack.title}</span>
+                    </div>
                     <span class="player-song-artist">${currentTrack.artist || 'Unknown Artist'}</span>
                 </div>
                 <div class="player-controls-container">
@@ -900,6 +903,9 @@ class ZindeKalModal {
                 this.initializeRiveAnimation();
             }
         }
+
+        // Also show animation in the player
+        this.showPlayerPlayingAnimation();
     }
 
     /**
@@ -917,6 +923,9 @@ class ZindeKalModal {
                 canvas.remove();
             }
         });
+
+        // Also hide animation in the player
+        this.hidePlayerPlayingAnimation();
     }
 
     /**
@@ -932,6 +941,31 @@ class ZindeKalModal {
             } else {
                 currentItem.classList.remove('playing');
             }
+        }
+        
+        return this;
+    }
+
+    /**
+     * Show playing animation in the music player
+     */
+    showPlayerPlayingAnimation() {
+        const playerCanvas = this.modalElement.querySelector('#player-playing-riv');
+        if (playerCanvas) {
+            playerCanvas.style.display = 'block';
+            this.initializePlayerRiveAnimation();
+        }
+        
+        return this;
+    }
+
+    /**
+     * Hide playing animation in the music player
+     */
+    hidePlayerPlayingAnimation() {
+        const playerCanvas = this.modalElement.querySelector('#player-playing-riv');
+        if (playerCanvas) {
+            playerCanvas.style.display = 'none';
         }
         
         return this;
@@ -1120,6 +1154,44 @@ class ZindeKalModal {
                     });
                 } catch (error) {
                     console.warn('ZindeKalModal: Could not load Rive animation:', error);
+                }
+            }
+        }
+    }
+
+    /**
+     * Initialize Rive animation for player playing indicator
+     */
+    initializePlayerRiveAnimation() {
+        // This requires the Rive library to be loaded
+        if (typeof rive !== 'undefined') {
+            const canvas = this.modalElement.querySelector("#player-playing-riv");
+            
+            if (canvas) {
+                canvas.width = 24;
+                canvas.height = 24;
+                canvas.style.width = '24px';
+                canvas.style.height = '24px';
+                
+                try {
+                    new rive.Rive({
+                        src: `${this.config.assets.basePath}playing.riv`,
+                        canvas: canvas,
+                        autoplay: true,
+                        stateMachines: "State Machine",
+                        layout: new rive.Layout({
+                            fit: rive.Fit.Contain,
+                            alignment: rive.Alignment.Center
+                        }),
+                        onLoad: () => {
+                            canvas.width = 24;
+                            canvas.height = 24;
+                            canvas.style.width = '24px';
+                            canvas.style.height = '24px';
+                        }
+                    });
+                } catch (error) {
+                    console.warn('ZindeKalModal: Could not load player Rive animation:', error);
                 }
             }
         }
