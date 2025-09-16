@@ -303,18 +303,23 @@ class ZindeKalModal {
             return '';
         }
 
-        const categories = this.config.exercise.categories.map((category, index) => `
-            <a href="#" class="category-item ${index === 0 ? 'active' : ''}" data-category="${category.id}">
-                ${category.badge ? `<span class="badge">${category.badge}</span>` : ''}
-                <div class="category-icon ${category.iconClass || ''}">
-                    <img src="${this.config.assets.basePath}${category.icon}" alt="${category.title}">
-                </div>
-                <div class="category-text">
-                    <span class="category-title">${category.title}</span>
-                    <span class="category-count">${category.videoCount} Video</span>
-                </div>
-            </a>
-        `).join('');
+        const categories = this.config.exercise.categories.map((category, index) => {
+            // Calculate actual video count for this category
+            const videoCount = this.config.exercise.videos.filter(video => video.categoryId === category.id).length;
+            
+            return `
+                <a href="#" class="category-item ${index === 0 ? 'active' : ''}" data-category="${category.id}">
+                    ${category.badge ? `<span class="badge">${category.badge}</span>` : ''}
+                    <div class="category-icon ${category.iconClass || ''}">
+                        <img src="${this.config.assets.basePath}${category.icon}" alt="${category.title}">
+                    </div>
+                    <div class="category-text">
+                        <span class="category-title">${category.title}</span>
+                        <span class="category-count">${videoCount} Video</span>
+                    </div>
+                </a>
+            `;
+        }).join('');
 
         return `
             <nav class="category-nav-scroll">
@@ -330,7 +335,15 @@ class ZindeKalModal {
      */
     generateVideoGrid(videos) {
         if (!videos || !videos.length) {
-            return '<div class="video-grid"><p>No videos available</p></div>';
+            return `
+                <div class="video-grid">
+                    <div class="empty-category-message">
+                        <div class="empty-icon">📽️</div>
+                        <h3>Bu kategoride video bulunamadı</h3>
+                        <p>Şu anda bu kategori için mevcut video bulunmuyor.</p>
+                    </div>
+                </div>
+            `;
         }
 
         const videoCards = videos.map(video => `
@@ -402,7 +415,11 @@ class ZindeKalModal {
                 data-track-index="${index}">
                 <div class="playlist-item-content">
                     <div class="song-info">
-                        <img src="${this.config.assets.basePath}${this.config.assets.icons.playSmall}" alt="Play">
+                        <div class="song-number-icon">
+                            <span class="song-number">${index + 1}</span>
+                            <img class="play-icon" src="${this.config.assets.basePath}${this.config.assets.icons.playSmall}" alt="Play">
+                            <img class="pause-icon" src="${this.config.assets.basePath}${this.config.assets.icons.pause}" alt="Pause">
+                        </div>
                         <div class="song-details">
                             <span class="song-title">${track.title}</span>
                             ${track.artist ? `<span class="song-artist">${track.artist}</span>` : ''}
@@ -455,9 +472,20 @@ class ZindeKalModal {
                         <div class="time-display">
                             <span>00:00</span> / <span>00:00</span>
                         </div>
-                        <button class="control-button volume-button" data-action="toggle-mute">
-                            <img src="${this.config.assets.basePath}${this.config.assets.icons.unmuted}" alt="Volume">
-                        </button>
+                        <div class="volume-control-container">
+                            <button class="control-button volume-button" data-action="toggle-volume">
+                                <img class="volume-button-icon" src="${this.config.assets.basePath}${this.config.assets.icons.unmuted}" alt="Volume">
+                            </button>
+                            <div class="volume-popup" style="display: none;">
+                                <div class="volume-content">
+                                    <button class="volume-mute-btn" data-action="toggle-audio-mute">
+                                        <img src="${this.config.assets.basePath}${this.config.assets.icons.unmuted}" alt="Mute">
+                                    </button>
+                                    <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="1">
+                                    <span class="volume-percentage">100%</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </footer>
@@ -510,6 +538,24 @@ class ZindeKalModal {
         // Event delegation for all modal interactions
         this.addEventHandler(this.modalElement, 'click', (e) => {
             this.handleModalClick(e);
+        });
+
+        // Close volume popup when clicking outside
+        this.addEventHandler(document, 'click', (e) => {
+            const volumePopup = this.modalElement.querySelector('.volume-popup');
+            const volumeButton = this.modalElement.querySelector('[data-action="toggle-volume"]');
+            if (volumePopup && volumePopup.style.display !== 'none' && 
+                !volumePopup.contains(e.target) && !volumeButton.contains(e.target)) {
+                this.hideVolumePopup();
+            }
+        });
+
+        // Volume slider input
+        this.addEventHandler(this.modalElement, 'input', (e) => {
+            if (e.target.classList.contains('volume-slider')) {
+                const volume = parseFloat(e.target.value);
+                this.updateVolume(volume);
+            }
         });
 
         // Toast close button
@@ -580,6 +626,12 @@ class ZindeKalModal {
                 break;
             case 'toggle-mute':
                 this.toggleAudioMute();
+                break;
+            case 'toggle-audio-mute':
+                this.toggleAudioMute();
+                break;
+            case 'toggle-volume':
+                this.toggleVolumePopup();
                 break;
         }
     }
@@ -699,6 +751,7 @@ class ZindeKalModal {
                 if (this.audioPlayer.audio) {
                     this.audioPlayer.audio.addEventListener('play', () => {
                         this.showPlayingAnimation(this.config.music.currentTrack);
+                        this.updatePlayingState(true);
                         if (this.config.events.onAudioPlay) {
                             this.config.events.onAudioPlay(currentTrack, this);
                         }
@@ -706,6 +759,7 @@ class ZindeKalModal {
 
                     this.audioPlayer.audio.addEventListener('pause', () => {
                         this.hidePlayingAnimation();
+                        this.updatePlayingState(false);
                         if (this.config.events.onAudioPause) {
                             this.config.events.onAudioPause(currentTrack, this);
                         }
@@ -713,6 +767,7 @@ class ZindeKalModal {
 
                     this.audioPlayer.audio.addEventListener('ended', () => {
                         this.hidePlayingAnimation();
+                        this.updatePlayingState(false);
                         // Auto-play next track
                         this.nextTrack();
                     });
@@ -733,9 +788,11 @@ class ZindeKalModal {
             if (this.audioPlayer.isPlaying) {
                 this.audioPlayer.pause();
                 this.hidePlayingAnimation();
+                this.updatePlayingState(false);
             } else {
                 this.audioPlayer.play().then(() => {
                     this.showPlayingAnimation(this.config.music.currentTrack);
+                    this.updatePlayingState(true);
                 }).catch(e => {
                     console.log('Play was prevented:', e);
                 });
@@ -796,16 +853,23 @@ class ZindeKalModal {
      */
     selectTrack(trackIndex) {
         if (trackIndex >= 0 && trackIndex < this.config.music.tracks.length) {
-            this.switchTrack(trackIndex);
-            
-            // Start playing the selected track
-            if (this.audioPlayer) {
-                this.audioPlayer.play().then(() => {
-                    // Show playing animation for the selected track
-                    this.showPlayingAnimation(trackIndex);
-                }).catch(e => {
-                    console.log('Play was prevented:', e);
-                });
+            // If clicking the same track that's currently selected
+            if (trackIndex === this.config.music.currentTrack) {
+                // Toggle play/pause instead of restarting
+                this.toggleAudioPlay();
+            } else {
+                // Switch to new track and start playing
+                this.switchTrack(trackIndex);
+                
+                // Start playing the selected track
+                if (this.audioPlayer) {
+                    this.audioPlayer.play().then(() => {
+                        // Show playing animation for the selected track
+                        this.showPlayingAnimation(trackIndex);
+                    }).catch(e => {
+                        console.log('Play was prevented:', e);
+                    });
+                }
             }
         }
 
@@ -821,19 +885,17 @@ class ZindeKalModal {
         
         if (targetItem) {
             const songInfo = targetItem.querySelector('.song-info');
-            const playIcon = songInfo.querySelector('img');
+            const songNumberIcon = songInfo.querySelector('.song-number-icon');
             const canvas = songInfo.querySelector('canvas');
             const track = this.config.music.tracks[trackIndex];
             
-            if (playIcon && !canvas) {
-                playIcon.style.display = 'none';
-                
+            if (songNumberIcon && !canvas) {
                 // Add the canvas for Rive animation
                 const canvasElement = document.createElement('canvas');
                 canvasElement.id = 'playing-riv';
                 canvasElement.width = 24;
                 canvasElement.height = 24;
-                songInfo.insertBefore(canvasElement, songInfo.firstChild);
+                songNumberIcon.appendChild(canvasElement);
                 
                 this.initializeRiveAnimation();
             }
@@ -848,17 +910,31 @@ class ZindeKalModal {
         
         playlistItems.forEach((item, index) => {
             const songInfo = item.querySelector('.song-info');
-            const playIcon = songInfo.querySelector('img');
+            const songNumberIcon = songInfo.querySelector('.song-number-icon');
             const canvas = songInfo.querySelector('canvas');
             
             if (canvas) {
                 canvas.remove();
             }
-            
-            if (playIcon) {
-                playIcon.style.display = 'block';
-            }
         });
+    }
+
+    /**
+     * Update playing state for current track
+     */
+    updatePlayingState(isPlaying) {
+        const playlistItems = this.modalElement.querySelectorAll('.playlist-item');
+        const currentItem = playlistItems[this.config.music.currentTrack];
+        
+        if (currentItem) {
+            if (isPlaying) {
+                currentItem.classList.add('playing');
+            } else {
+                currentItem.classList.remove('playing');
+            }
+        }
+        
+        return this;
     }
 
     /**
@@ -876,28 +952,15 @@ class ZindeKalModal {
         // Update playlist visual state
         this.modalElement.querySelectorAll('.playlist-item').forEach((item, index) => {
             item.classList.toggle('active', index === trackIndex);
+            // Clear playing state for all items
+            item.classList.remove('playing');
             
             const songInfo = item.querySelector('.song-info');
-            const playIcon = songInfo.querySelector('img');
             const canvas = songInfo.querySelector('canvas');
-            const track = this.config.music.tracks[index];
             
             // Remove any existing canvas animations
             if (canvas) {
                 canvas.remove();
-            }
-            
-            // Always show play icon for all tracks (playing animation will be added separately)
-            if (!playIcon) {
-                songInfo.innerHTML = `
-                    <img src="${this.config.assets.basePath}${this.config.assets.icons.playSmall}" alt="Play">
-                    <div class="song-details">
-                        <span class="song-title">${track.title}</span>
-                        ${track.artist ? `<span class="song-artist">${track.artist}</span>` : ''}
-                    </div>
-                `;
-            } else {
-                playIcon.style.display = 'block';
             }
         });
 
@@ -923,8 +986,104 @@ class ZindeKalModal {
     toggleAudioMute() {
         if (this.audioPlayer) {
             this.audioPlayer.toggleMute();
+            // Update the volume popup UI to reflect mute state
+            this.updateVolumePopupUI();
         }
 
+        return this;
+    }
+
+    /**
+     * Toggle volume popup visibility
+     */
+    toggleVolumePopup() {
+        const volumePopup = this.modalElement.querySelector('.volume-popup');
+        if (volumePopup) {
+            const isVisible = volumePopup.style.display !== 'none';
+            if (isVisible) {
+                this.hideVolumePopup();
+            } else {
+                this.showVolumePopup();
+            }
+        }
+
+        return this;
+    }
+
+    /**
+     * Show volume popup
+     */
+    showVolumePopup() {
+        const volumePopup = this.modalElement.querySelector('.volume-popup');
+        if (volumePopup) {
+            volumePopup.style.display = 'block';
+            
+            // Update volume slider and percentage
+            this.updateVolumePopupUI();
+        }
+
+        return this;
+    }
+
+    /**
+     * Hide volume popup
+     */
+    hideVolumePopup() {
+        const volumePopup = this.modalElement.querySelector('.volume-popup');
+        if (volumePopup) {
+            volumePopup.style.display = 'none';
+        }
+
+        return this;
+    }
+
+    /**
+     * Update volume popup UI elements
+     */
+    updateVolumePopupUI() {
+        if (!this.audioPlayer) return;
+
+        const volumeSlider = this.modalElement.querySelector('.volume-slider');
+        const volumePercentage = this.modalElement.querySelector('.volume-percentage');
+        const volumeMuteBtn = this.modalElement.querySelector('.volume-mute-btn img');
+        const volumeButtonIcon = this.modalElement.querySelector('.volume-button-icon');
+
+        if (volumeSlider) {
+            volumeSlider.value = this.audioPlayer.volume;
+        }
+
+        if (volumePercentage) {
+            volumePercentage.textContent = Math.round(this.audioPlayer.volume * 100) + '%';
+        }
+
+        // Update both popup mute button and main volume button icons
+        const iconSrc = this.audioPlayer.isMuted 
+            ? this.config.assets.basePath + this.config.assets.icons.muted
+            : this.config.assets.basePath + this.config.assets.icons.unmuted;
+        const altText = this.audioPlayer.isMuted ? 'Unmute' : 'Mute';
+
+        if (volumeMuteBtn) {
+            volumeMuteBtn.src = iconSrc;
+            volumeMuteBtn.alt = altText;
+        }
+
+        if (volumeButtonIcon) {
+            volumeButtonIcon.src = iconSrc;
+            volumeButtonIcon.alt = 'Volume';
+        }
+
+        return this;
+    }
+
+    /**
+     * Update volume from slider input
+     */
+    updateVolume(volume) {
+        if (!this.audioPlayer) return;
+        
+        this.audioPlayer.setVolume(volume);
+        this.updateVolumePopupUI();
+        
         return this;
     }
 
