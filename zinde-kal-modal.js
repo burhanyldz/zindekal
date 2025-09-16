@@ -333,17 +333,18 @@ class ZindeKalModal {
     /**
      * Generate video grid for any tab
      */
-    generateVideoGrid(videos) {
+    generateVideoGrid(videos, withParentDiv = true) {
         if (!videos || !videos.length) {
-            return `
-                <div class="video-grid">
+            let emptyMessage = `
                     <div class="empty-category-message">
                         <div class="empty-icon">📽️</div>
                         <h3>Bu kategoride video bulunamadı</h3>
                         <p>Şu anda bu kategori için mevcut video bulunmuyor.</p>
                     </div>
-                </div>
             `;
+
+            return withParentDiv ? `<div class="video-grid">${emptyMessage}</div>` : emptyMessage;
+
         }
 
         const videoCards = videos.map(video => `
@@ -366,11 +367,7 @@ class ZindeKalModal {
             </article>
         `).join('');
 
-        return `
-            <div class="video-grid">
-                ${videoCards}
-            </div>
-        `;
+        return withParentDiv ? `<div class="video-grid">${videoCards}</div>` : videoCards;
     }
 
     /**
@@ -709,7 +706,7 @@ class ZindeKalModal {
         const videoGrid = exerciseTab.querySelector('.video-grid');
         
         if (videoGrid) {
-            videoGrid.innerHTML = this.generateVideoGrid(filteredVideos).replace('<div class="video-grid">', '').replace('</div>', '');
+            videoGrid.innerHTML = this.generateVideoGrid(filteredVideos,false);
         }
 
         return this;
