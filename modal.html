@@ -11,8 +11,10 @@
   <style>
     
   </style>
+
   <script src="global.js" defer></script>
   <script src="audio-player.js" defer></script>
+
 </head>
 <body>
   <!-- Button Container -->
@@ -199,7 +201,7 @@
             <li class="playlist-item">
               <div class="playlist-item-content">
                 <div class="song-info">
-                  <img src="images/40002110_17870.svg" alt="Play">
+                  <img src="images/play-sm.svg" alt="Play">
                   <span>Sessiz Akşam</span>
                 </div> 
                 <span>4:12</span>
@@ -208,7 +210,7 @@
             <li class="playlist-item active">
               <div class="playlist-item-content">
                 <div class="song-info">
-                  <img src="images/40002113_16388.svg" alt="Playing">
+                  <canvas id="playing-riv" width="24" height="24"></canvas>
                   <span>Huzur Melodisi</span>
                 </div> 
                 <span>3:28</span>
@@ -217,7 +219,7 @@
             <li class="playlist-item hover">
               <div class="playlist-item-content">
                 <div class="song-info">
-                  <img src="images/40002110_17870.svg" alt="Play">
+                  <img src="images/play-sm.svg" alt="Play">
                   <span>Doğa Sesleri</span>
                 </div> 
                 <span>5:15</span>
@@ -226,7 +228,7 @@
             <li class="playlist-item">
               <div class="playlist-item-content">
                 <div class="song-info">
-                  <span>4</span>
+                  <img src="images/play-sm.svg" alt="Play">
                   <span>Rahatlatıcı Piyano</span>
                 </div> 
                 <span>4:42</span>
@@ -235,19 +237,10 @@
             <li class="playlist-item">
               <div class="playlist-item-content">
                 <div class="song-info">
-                  <span>5</span>
+                  <img src="images/play-sm.svg" alt="Play">
                   <span>Meditasyon Müziği</span>
                 </div> 
                 <span>6:18</span>
-              </div>
-            </li>
-            <li class="playlist-item disabled">
-              <div class="playlist-item-content">
-                <div class="song-info">
-                  <span>6</span>
-                  <span>Uyku Melodileri</span>
-                </div> 
-                <span>7:30</span>
               </div>
             </li>
           </ul>
@@ -394,6 +387,20 @@
         initializeAudioPlayer();
       }
     });
+  </script>
+      <script src="https://unpkg.com/@rive-app/canvas"></script>
+  <script>
+      const r = new rive.Rive({
+        src: "images/playing.riv",
+        canvas: document.getElementById("playing-riv"),
+        autoplay: true,
+        // artboard: "Arboard", // Optional. If not supplied the default is selected
+        stateMachines: "State Machine",
+        onLoad: () => {
+          // Ensure the drawing surface matches the canvas size and device pixel ratio
+          r.resizeDrawingSurfaceToCanvas();
+        },
+      });
   </script>
 </body>
 </html>
