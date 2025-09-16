@@ -199,7 +199,26 @@ class ZindeKalModal {
         // Bind event handlers
         this.bindEvents();
         
+        // Initialize first category as active and filter videos if on exercise tab
+        this.initializeDefaultCategory();
+        
         this.isInitialized = true;
+        
+        return this;
+    }
+
+    /**
+     * Initialize the first category as active and filter videos for exercise tab
+     */
+    initializeDefaultCategory() {
+        // Only initialize if we're on exercise tab and have categories
+        if (this.currentTab === 'exercise' && 
+            this.config.exercise.categories && 
+            this.config.exercise.categories.length > 0) {
+            
+            const firstCategoryId = this.config.exercise.categories[0].id;
+            this.filterVideosByCategory(firstCategoryId);
+        }
         
         return this;
     }
@@ -662,6 +681,15 @@ class ZindeKalModal {
         // Initialize audio player when switching to music tab
         if (tabName === 'music' && !this.audioPlayer) {
             this.initializeAudioPlayer();
+        }
+
+        // Ensure first category is selected when switching to exercise tab
+        if (tabName === 'exercise' && 
+            this.config.exercise.categories && 
+            this.config.exercise.categories.length > 0) {
+            
+            const firstCategoryId = this.config.exercise.categories[0].id;
+            this.selectCategory(firstCategoryId);
         }
 
         // Call onTabChange callback
@@ -1308,6 +1336,19 @@ class ZindeKalModal {
         // Initialize audio player if music tab is active
         if (this.currentTab === 'music' && !this.audioPlayer) {
             this.initializeAudioPlayer();
+        }
+
+        // Ensure first category is selected and videos filtered if on exercise tab
+        if (this.currentTab === 'exercise' && 
+            this.config.exercise.categories && 
+            this.config.exercise.categories.length > 0) {
+            
+            // Check if any category is currently active
+            const activeCategory = this.modalElement.querySelector('.category-item.active');
+            if (!activeCategory) {
+                const firstCategoryId = this.config.exercise.categories[0].id;
+                this.selectCategory(firstCategoryId);
+            }
         }
 
         // Call onOpen callback
