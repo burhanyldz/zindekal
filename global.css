@@ -17,6 +17,7 @@
   --color-background-card: #f8fbff;
   --color-background-card-hover: #F4F9FF;
   --color-background-card-active: #f2f8ff;
+  --color-playlist-item-background-active: #EAF4FF;
   --color-background-disabled: #f6f3f2;
   --color-border-dark: #b6c5e9;
   --color-border-darker: #92A8DE;
@@ -408,7 +409,7 @@ body {
   flex-direction: column;
 }
 .music-content .playlist .playlist-item:hover .playlist-item-content {
-  background-color: var(--color-background-hover);
+  background-color: var(--color-playlist-item-background-active);
 }
 .music-content .playlist .playlist-item.active .playlist-item-content {
   background-color: var(--color-background-card);
@@ -525,4 +526,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.music-player .control-button.play-pause-button {
+  min-width: 26px;
 }/*# sourceMappingURL=global.css.map */

@@ -390,17 +390,48 @@
   </script>
       <script src="https://unpkg.com/@rive-app/canvas"></script>
   <script>
-      const r = new rive.Rive({
-        src: "images/playing.riv",
-        canvas: document.getElementById("playing-riv"),
-        autoplay: true,
-        // artboard: "Arboard", // Optional. If not supplied the default is selected
-        stateMachines: "State Machine",
-        onLoad: () => {
-          // Ensure the drawing surface matches the canvas size and device pixel ratio
-          r.resizeDrawingSurfaceToCanvas();
-        },
-      });
+    // Initialize Rive animation when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      const canvas = document.getElementById("playing-riv");
+      
+      if (canvas) {
+        // Set canvas size explicitly before creating Rive instance
+        canvas.width = 24;
+        canvas.height = 24;
+        canvas.style.width = '24px';
+        canvas.style.height = '24px';
+        
+        const r = new rive.Rive({
+          src: "images/playing.riv",
+          canvas: canvas,
+          autoplay: true,
+          stateMachines: "State Machine 1", // Use the correct name from your Rive file
+          layout: new rive.Layout({
+            fit: rive.Fit.Contain, // Fit the animation within the canvas
+            alignment: rive.Alignment.Center
+          }),
+          onLoad: () => {
+            // Set canvas size again after load to ensure it sticks
+            canvas.width = 24;
+            canvas.height = 24;
+            canvas.style.width = '24px';
+            canvas.style.height = '24px';
+            
+            // Resize drawing surface to match
+            r.resizeDrawingSurfaceToCanvas();
+            console.log("Rive animation loaded successfully");
+          },
+          onLoadError: (error) => {
+            console.error("Failed to load Rive file:", error);
+          },
+          onError: (error) => {
+            console.error("Rive error:", error);
+          }
+        });
+      } else {
+        console.error("Canvas element 'playing-riv' not found");
+      }
+    });
   </script>
 </body>
 </html>
