@@ -1,4 +1,4 @@
-// Simplified AudioPlayer for embedded use in modal
+// SimFilelified AudioPlayer for embedded use in modal
 class EmbeddedAudioPlayer {
     constructor(options = {}) {
         this.options = {
@@ -96,11 +96,6 @@ class EmbeddedAudioPlayer {
         if (this.progressBar) {
             this.progressBar.addEventListener('mousedown', (e) => this.startDrag(e));
             this.progressBar.addEventListener('click', (e) => this.seekToPosition(e));
-        }
-        
-        // Volume button
-        if (this.volumeButton) {
-            this.volumeButton.addEventListener('click', () => this.toggleMute());
         }
         
         // Global mouse events for dragging

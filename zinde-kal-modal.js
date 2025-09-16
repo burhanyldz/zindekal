@@ -643,9 +643,6 @@ class ZindeKalModal {
             case 'next-track':
                 this.nextTrack();
                 break;
-            case 'toggle-mute':
-                this.toggleAudioMute();
-                break;
             case 'toggle-audio-mute':
                 this.toggleAudioMute();
                 break;
