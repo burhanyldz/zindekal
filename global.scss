@@ -104,10 +104,87 @@ body {
         position: relative;
         display: flex;
         flex-direction: column;
+        user-select: none;
+
+        /* ================================
+        NAVIGATION & TABS
+        ================================ */
+
+        /* Widget Header and Tabs */
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+            border-bottom: 1px solid var(--color-border-light);
+            padding: 24px 24px 0px 24px;
+            flex-shrink: 0;
+
+            .tabs-nav {
+                display: flex;
+                gap: 32px;
+
+                .tab-item {
+                    font-size: 16px;
+                    line-height: 24px;
+                    color: var(--color-text-light);
+                    text-decoration: none;
+                    padding: 6px 12px;
+                    border-bottom: 2px solid transparent;
+                    cursor: pointer;
+
+                    &.active {
+                        color: var(--color-primary) !important;
+                        border-color: var(--color-primary) !important;
+                    }
+
+                    &:hover {
+                        color: var(--color-text-medium);
+                        border-color: var(--color-border-dark);
+                    }
+                }
+            }
+        }
+
+        /* Tab Content Sections */
+        .tab-content {
+            display: none;
+            padding: 24px;
+            padding-top: 0;
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+
+            &.active {
+                display: flex;
+                flex-direction: column;
+            }
+
+            &#music-tab {
+                padding: 0 !important;
+                position: relative;
+                flex: 1;
+                overflow: hidden;
+
+                &.active {
+                    display: flex !important;
+                    flex-direction: column;
+                }
+            }
+
+            /* For exercise and relaxing tabs - ensure scrollable content */
+            &#exercise-tab, &#relaxing-tab {
+                &.active {
+                    display: flex;
+                    flex-direction: column;
+                    overflow-y: auto;
+                }
+            }
+        }
     }
 }
 
-/* ================================
+   /* ================================
    BUTTON COMPONENTS
    ================================ */
 
@@ -163,82 +240,6 @@ body {
     gap: 20px;
     justify-content: center;
     margin: 50px auto;
-}
-
-/* ================================
-   NAVIGATION & TABS
-   ================================ */
-
-/* Widget Header and Tabs */
-.widget-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 24px;
-    border-bottom: 1px solid var(--color-border-light);
-    padding: 24px 24px 0px 24px;
-    flex-shrink: 0;
-
-    .tabs-nav {
-        display: flex;
-        gap: 32px;
-
-        .tab-item {
-            font-size: 16px;
-            line-height: 24px;
-            color: var(--color-text-light);
-            text-decoration: none;
-            padding: 6px 12px;
-            border-bottom: 2px solid transparent;
-            cursor: pointer;
-
-            &.active {
-                color: var(--color-primary) !important;
-                border-color: var(--color-primary) !important;
-            }
-
-            &:hover {
-                color: var(--color-text-medium);
-                border-color: var(--color-border-dark);
-            }
-        }
-    }
-}
-
-/* Tab Content Sections */
-.tab-content {
-    display: none;
-    padding: 24px;
-    padding-top: 0;
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
-
-    &.active {
-        display: flex;
-        flex-direction: column;
-    }
-
-    &#music-tab {
-        padding: 0 !important;
-        position: relative;
-        flex: 1;
-        overflow: hidden;
-
-        &.active {
-            display: flex !important;
-            flex-direction: column;
-        }
-    }
-
-    /* For exercise and relaxing tabs - ensure scrollable content */
-    &#exercise-tab, &#relaxing-tab {
-        &.active {
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-    }
 }
 
 /* ================================
@@ -876,11 +877,7 @@ body {
    ================================ */
 
 /* Mobile Responsive Styles */
-@media (max-width: 768px) {
-    // Widget header mobile padding
-    .widget-header {
-        padding: 24px 0px 0px 0px;
-    }
+@media (max-width: 576px) {
 
     // Full screen modal
     .modal-overlay {
@@ -893,6 +890,19 @@ body {
             min-height: 100vh;
             border-radius: 0;
             
+            // Widget header mobile padding
+            .widget-header {
+                padding: 10px 10px 0px 10px;
+
+                .tab-item{
+                    font-size: 14px;
+                    line-height: 22px;
+                    padding: 0 !important;
+                    text-align: center;
+                }
+            }
+
+
             .tab-content {
                 flex: 1;
                 overflow-y: auto;
@@ -919,53 +929,100 @@ body {
                         overflow-y: auto;
                     }
                 }
+
+                .category-nav-scroll{
+
+                    padding: 10px 0 10px 0 !important;
+                    margin-bottom: 0 !important;
+
+                    .category-nav{
+                        .category-item{
+                            padding: 8px 12px !important;
+
+                            .category-title {
+                                font-size: 14px !important;
+                            }
+
+                            .category-count {
+                                font-size: 12px !important;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
     // Mobile music player redesign
     .music-player {
-        flex-direction: column;
+        flex-direction: row;
         height: auto;
         padding: 0;
         gap: 0;
+        position: relative;
         
-        // Time bar at top
-        .progress-bar-container {
-            order: -1;
-            width: 100%;
-            padding: 0;
-            
-            .progress-bar {
-                height: 3px;
-                border-radius: 0;
-                
-                .progress-bar-filled {
-                    border-radius: 0;
+        .player-song-details {
+            padding: 16px 10px;
+            text-align: center;
+            flex: 1;
+
+            .player-song-title-container{
+
+                gap: 4px;
+
+                #player-playing-riv {
+                    width: 16px !important;
+                    height: 16px !important;
                 }
-                
-                .progress-bar-thumb {
+            }
+
+            span{
+                display: block;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                text-align: left;
+            }
+        }
+
+        .player-controls-container {
+            flex-grow: unset;
+            padding: 16px 10px;
+
+            .player-controls{
+
+                .prev-track, .next-track {
                     display: none;
                 }
             }
-            
-            .time-display {
-                display: none;
+
+            // Time bar at top
+            .progress-bar-container {
+                position: absolute;
+                width: 100%;
+                padding: 0 3px;
+                top: -2px;
+                left: 0;
+                right: 0;
+                
+                .progress-bar {
+                    height: 3px;
+                    border-radius: 0;
+                    
+                    .progress-bar-filled {
+                        border-radius: 0;
+                    }
+                    
+                }
+                
+                .time-display {
+                    display: none;
+                }
+                
+                .volume-control-container {
+                    display: none;
+                }
             }
-            
-            .volume-control-container {
-                display: none;
-            }
-        }
-        
-        .player-song-details {
-            padding: 16px 24px;
-            text-align: center;
-            flex: 1;
-        }
-        
-        .player-controls-container {
-            display: none;
         }
     }
 
@@ -987,8 +1044,114 @@ body {
     }
 }
 
+@media (min-width: 577px) and (max-width: 768px) {
+    .video-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .tab-item {
+        text-align: center;
+    }
+
+    // Full screen modal
+    .modal-overlay {
+        padding: 0;
+        
+        .modal-container {
+            max-width: 100%;
+            width: 100%;
+            max-height: 100vh;
+            min-height: 100vh;
+            border-radius: 0;
+        }
+    }
+
+        // Mobile music player redesign
+    .music-player {
+        flex-direction: row;
+        height: auto;
+        padding: 0;
+        gap: 0;
+        position: relative;
+
+        .player-song-details {
+            padding: 16px 10px;
+            text-align: center;
+            flex: 1;
+
+            .player-song-title-container {
+
+                gap: 4px;
+
+                #player-playing-riv {
+                    width: 16px !important;
+                    height: 16px !important;
+                }
+            }
+
+            span {
+                display: block;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                text-align: left;
+            }
+        }
+
+        .player-controls-container {
+            flex-grow: unset;
+            padding: 16px 10px;
+
+            // Time bar at top
+            .progress-bar-container {
+                position: absolute;
+                width: 100%;
+                padding: 0 3px;
+                top: -2px;
+                left: 0;
+                right: 0;
+
+                .progress-bar {
+                    height: 3px;
+                    border-radius: 0;
+
+                    .progress-bar-filled {
+                        border-radius: 0;
+                    }
+
+                }
+
+                .time-display {
+                    display: none;
+                }
+
+                .volume-control-container {
+                    display: none;
+                }
+            }
+        }
+    }
+  
+}
+
+
 /* Tablet Responsive Styles */
 @media (min-width: 769px) and (max-width: 1024px) {
+
+    // Full screen modal
+    .modal-overlay {
+        padding: 0;
+        
+        .modal-container {
+            max-width: 100%;
+            width: 100%;
+            max-height: 100vh;
+            min-height: 100vh;
+            border-radius: 0;
+        }
+    }
+
     .video-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 16px;

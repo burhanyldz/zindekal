@@ -473,13 +473,13 @@ class ZindeKalModal {
                 </div>
                 <div class="player-controls-container">
                     <div class="player-controls">
-                        <button class="control-button" data-action="prev-track">
+                        <button class="control-button prev-track" data-action="prev-track">
                             <img src="${this.config.assets.basePath}${this.config.assets.icons.prev}" alt="Previous">
                         </button>
                         <button class="control-button play-pause-button" data-action="toggle-play">
                             <img src="${this.config.assets.basePath}${this.config.assets.icons.play}" alt="Play">
                         </button>
-                        <button class="control-button" data-action="next-track">
+                        <button class="control-button next-track" data-action="next-track">
                             <img src="${this.config.assets.basePath}${this.config.assets.icons.next}" alt="Next">
                         </button>
                     </div>

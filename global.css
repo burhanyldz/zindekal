@@ -99,11 +99,77 @@ body {
   position: relative;
   display: flex;
   flex-direction: column;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+  /* ================================
+  NAVIGATION & TABS
+  ================================ */
+  /* Widget Header and Tabs */
+  /* Tab Content Sections */
+}
+.modal-overlay .modal-container .widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  border-bottom: 1px solid var(--color-border-light);
+  padding: 24px 24px 0px 24px;
+  flex-shrink: 0;
+}
+.modal-overlay .modal-container .widget-header .tabs-nav {
+  display: flex;
+  gap: 32px;
+}
+.modal-overlay .modal-container .widget-header .tabs-nav .tab-item {
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--color-text-light);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+.modal-overlay .modal-container .widget-header .tabs-nav .tab-item.active {
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+.modal-overlay .modal-container .widget-header .tabs-nav .tab-item:hover {
+  color: var(--color-text-medium);
+  border-color: var(--color-border-dark);
+}
+.modal-overlay .modal-container .tab-content {
+  display: none;
+  padding: 24px;
+  padding-top: 0;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  /* For exercise and relaxing tabs - ensure scrollable content */
+}
+.modal-overlay .modal-container .tab-content.active {
+  display: flex;
+  flex-direction: column;
+}
+.modal-overlay .modal-container .tab-content#music-tab {
+  padding: 0 !important;
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+.modal-overlay .modal-container .tab-content#music-tab.active {
+  display: flex !important;
+  flex-direction: column;
+}
+.modal-overlay .modal-container .tab-content#exercise-tab.active, .modal-overlay .modal-container .tab-content#relaxing-tab.active {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
 }
 
 /* ================================
-   BUTTON COMPONENTS
-   ================================ */
+BUTTON COMPONENTS
+================================ */
 /* Button Styles */
 .zinde-kal-button {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
@@ -154,71 +220,6 @@ body {
   gap: 20px;
   justify-content: center;
   margin: 50px auto;
-}
-
-/* ================================
-   NAVIGATION & TABS
-   ================================ */
-/* Widget Header and Tabs */
-.widget-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 24px;
-  border-bottom: 1px solid var(--color-border-light);
-  padding: 24px 24px 0px 24px;
-  flex-shrink: 0;
-}
-.widget-header .tabs-nav {
-  display: flex;
-  gap: 32px;
-}
-.widget-header .tabs-nav .tab-item {
-  font-size: 16px;
-  line-height: 24px;
-  color: var(--color-text-light);
-  text-decoration: none;
-  padding: 6px 12px;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-}
-.widget-header .tabs-nav .tab-item.active {
-  color: var(--color-primary) !important;
-  border-color: var(--color-primary) !important;
-}
-.widget-header .tabs-nav .tab-item:hover {
-  color: var(--color-text-medium);
-  border-color: var(--color-border-dark);
-}
-
-/* Tab Content Sections */
-.tab-content {
-  display: none;
-  padding: 24px;
-  padding-top: 0;
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-  /* For exercise and relaxing tabs - ensure scrollable content */
-}
-.tab-content.active {
-  display: flex;
-  flex-direction: column;
-}
-.tab-content#music-tab {
-  padding: 0 !important;
-  position: relative;
-  flex: 1;
-  overflow: hidden;
-}
-.tab-content#music-tab.active {
-  display: flex !important;
-  flex-direction: column;
-}
-.tab-content#exercise-tab.active, .tab-content#relaxing-tab.active {
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
 }
 
 /* ================================
@@ -761,10 +762,7 @@ body {
    RESPONSIVE DESIGN
    ================================ */
 /* Mobile Responsive Styles */
-@media (max-width: 768px) {
-  .widget-header {
-    padding: 24px 0px 0px 0px;
-  }
+@media (max-width: 576px) {
   .modal-overlay {
     padding: 0;
   }
@@ -774,6 +772,15 @@ body {
     max-height: 100vh;
     min-height: 100vh;
     border-radius: 0;
+  }
+  .modal-overlay .modal-container .widget-header {
+    padding: 10px 10px 0px 10px;
+  }
+  .modal-overlay .modal-container .widget-header .tab-item {
+    font-size: 14px;
+    line-height: 22px;
+    padding: 0 !important;
+    text-align: center;
   }
   .modal-overlay .modal-container .tab-content {
     flex: 1;
@@ -795,39 +802,71 @@ body {
     flex-direction: column;
     overflow-y: auto;
   }
+  .modal-overlay .modal-container .tab-content .category-nav-scroll {
+    padding: 10px 0 10px 0 !important;
+    margin-bottom: 0 !important;
+  }
+  .modal-overlay .modal-container .tab-content .category-nav-scroll .category-nav .category-item {
+    padding: 8px 12px !important;
+  }
+  .modal-overlay .modal-container .tab-content .category-nav-scroll .category-nav .category-item .category-title {
+    font-size: 14px !important;
+  }
+  .modal-overlay .modal-container .tab-content .category-nav-scroll .category-nav .category-item .category-count {
+    font-size: 12px !important;
+  }
   .music-player {
-    flex-direction: column;
+    flex-direction: row;
     height: auto;
     padding: 0;
     gap: 0;
-  }
-  .music-player .progress-bar-container {
-    order: -1;
-    width: 100%;
-    padding: 0;
-  }
-  .music-player .progress-bar-container .progress-bar {
-    height: 3px;
-    border-radius: 0;
-  }
-  .music-player .progress-bar-container .progress-bar .progress-bar-filled {
-    border-radius: 0;
-  }
-  .music-player .progress-bar-container .progress-bar .progress-bar-thumb {
-    display: none;
-  }
-  .music-player .progress-bar-container .time-display {
-    display: none;
-  }
-  .music-player .progress-bar-container .volume-control-container {
-    display: none;
+    position: relative;
   }
   .music-player .player-song-details {
-    padding: 16px 24px;
+    padding: 16px 10px;
     text-align: center;
     flex: 1;
   }
+  .music-player .player-song-details .player-song-title-container {
+    gap: 4px;
+  }
+  .music-player .player-song-details .player-song-title-container #player-playing-riv {
+    width: 16px !important;
+    height: 16px !important;
+  }
+  .music-player .player-song-details span {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+  }
   .music-player .player-controls-container {
+    flex-grow: unset;
+    padding: 16px 10px;
+  }
+  .music-player .player-controls-container .player-controls .prev-track, .music-player .player-controls-container .player-controls .next-track {
+    display: none;
+  }
+  .music-player .player-controls-container .progress-bar-container {
+    position: absolute;
+    width: 100%;
+    padding: 0 3px;
+    top: -2px;
+    left: 0;
+    right: 0;
+  }
+  .music-player .player-controls-container .progress-bar-container .progress-bar {
+    height: 3px;
+    border-radius: 0;
+  }
+  .music-player .player-controls-container .progress-bar-container .progress-bar .progress-bar-filled {
+    border-radius: 0;
+  }
+  .music-player .player-controls-container .progress-bar-container .time-display {
+    display: none;
+  }
+  .music-player .player-controls-container .progress-bar-container .volume-control-container {
     display: none;
   }
   .video-grid {
@@ -843,8 +882,88 @@ body {
     font-size: 11px;
   }
 }
+@media (min-width: 577px) and (max-width: 768px) {
+  .video-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .tab-item {
+    text-align: center;
+  }
+  .modal-overlay {
+    padding: 0;
+  }
+  .modal-overlay .modal-container {
+    max-width: 100%;
+    width: 100%;
+    max-height: 100vh;
+    min-height: 100vh;
+    border-radius: 0;
+  }
+  .music-player {
+    flex-direction: row;
+    height: auto;
+    padding: 0;
+    gap: 0;
+    position: relative;
+  }
+  .music-player .player-song-details {
+    padding: 16px 10px;
+    text-align: center;
+    flex: 1;
+  }
+  .music-player .player-song-details .player-song-title-container {
+    gap: 4px;
+  }
+  .music-player .player-song-details .player-song-title-container #player-playing-riv {
+    width: 16px !important;
+    height: 16px !important;
+  }
+  .music-player .player-song-details span {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+  }
+  .music-player .player-controls-container {
+    flex-grow: unset;
+    padding: 16px 10px;
+  }
+  .music-player .player-controls-container .progress-bar-container {
+    position: absolute;
+    width: 100%;
+    padding: 0 3px;
+    top: -2px;
+    left: 0;
+    right: 0;
+  }
+  .music-player .player-controls-container .progress-bar-container .progress-bar {
+    height: 3px;
+    border-radius: 0;
+  }
+  .music-player .player-controls-container .progress-bar-container .progress-bar .progress-bar-filled {
+    border-radius: 0;
+  }
+  .music-player .player-controls-container .progress-bar-container .time-display {
+    display: none;
+  }
+  .music-player .player-controls-container .progress-bar-container .volume-control-container {
+    display: none;
+  }
+}
 /* Tablet Responsive Styles */
 @media (min-width: 769px) and (max-width: 1024px) {
+  .modal-overlay {
+    padding: 0;
+  }
+  .modal-overlay .modal-container {
+    max-width: 100%;
+    width: 100%;
+    max-height: 100vh;
+    min-height: 100vh;
+    border-radius: 0;
+  }
   .video-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
