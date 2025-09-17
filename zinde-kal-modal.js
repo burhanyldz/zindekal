@@ -13,6 +13,9 @@ class ZindeKalModal {
         this.isModalOpen = false;
         this.currentTab = 'exercise';
         this.audioPlayer = null;
+        this.videoPlayer = null;
+        this.originalTabContent = null;
+        this.originalTabId = null;
         this.modalElement = null;
         this.toastElement = null;
         this.boundEventHandlers = new Map();
@@ -764,16 +767,113 @@ class ZindeKalModal {
     }
 
     /**
-     * Play a video
+     * Play a video - Enhanced implementation with video player
      */
-    playVideo(videoSrc) {
-        // This is a placeholder - implement your video player logic here
-        console.log('Playing video:', videoSrc);
+    playVideo(videoSrc, videoPoster = '') {
+        // Find video data to get poster/thumbnail
+        let videoData = null;
+        const allVideos = [...(this.config.exercise.videos || []), ...(this.config.relaxing.videos || [])];
+        videoData = allVideos.find(video => video.src === videoSrc);
         
-        // Call onVideoPlay callback
-        if (this.config.events.onVideoPlay) {
-            this.config.events.onVideoPlay(videoSrc, this);
+        if (videoData && !videoPoster) {
+            videoPoster = videoData.thumbnail || '';
         }
+
+        // Clean current tab content and show video player
+        const activeTabContent = this.modalElement.querySelector('.tab-content.active');
+        if (!activeTabContent) {
+            console.error('ZindeKalModal: No active tab found');
+            return this;
+        }
+
+        // Store original content for restoration
+        this.originalTabContent = activeTabContent.innerHTML;
+        this.originalTabId = activeTabContent.id;
+
+        // Create video player container
+        const videoPlayerContainer = document.createElement('div');
+        videoPlayerContainer.className = 'video-player-container';
+        videoPlayerContainer.id = 'zindekal-video-player-container';
+
+        // Clear tab content and add video player
+        activeTabContent.innerHTML = '';
+        activeTabContent.appendChild(videoPlayerContainer);
+
+        // Initialize video player
+        this.videoPlayer = new ZindeKalVideoPlayer({
+            container: videoPlayerContainer,
+            videoSrc: videoSrc,
+            videoPoster: videoPoster,
+            callbacks: {
+                onPlayerReady: (player) => {
+                    console.log('ZindeKal Video Player ready');
+                    if (this.config.events.onVideoPlay) {
+                        this.config.events.onVideoPlay(videoSrc, this);
+                    }
+                },
+                onBackClick: () => {
+                    this.closeVideoPlayer();
+                },
+                onPlay: () => {
+                    console.log('Video started playing');
+                },
+                onPause: () => {
+                    console.log('Video paused');
+                },
+                onEnded: () => {
+                    console.log('Video ended');
+                }
+            }
+        });
+
+        // Initialize the player
+        this.videoPlayer.init().catch(error => {
+            console.error('Failed to initialize video player:', error);
+            // Restore original content on error
+            this.closeVideoPlayer();
+        });
+
+        return this;
+    }
+
+    /**
+     * Close video player and restore original tab content
+     */
+    closeVideoPlayer() {
+        // Destroy video player if it exists
+        if (this.videoPlayer) {
+            this.videoPlayer.destroy();
+            this.videoPlayer = null;
+        }
+
+        // Restore original tab content
+        if (this.originalTabContent && this.originalTabId) {
+            const activeTabContent = this.modalElement.querySelector(`#${this.originalTabId}`);
+            if (activeTabContent) {
+                activeTabContent.innerHTML = this.originalTabContent;
+                
+                // Re-filter videos if we're in exercise tab and have categories
+                if (this.originalTabId === 'exercise-tab' && 
+                    this.config.exercise.categories && 
+                    this.config.exercise.categories.length > 0) {
+                    
+                    // Find currently active category
+                    const activeCategory = this.modalElement.querySelector('.category-item.active');
+                    if (activeCategory) {
+                        const categoryId = activeCategory.dataset.category;
+                        this.filterVideosByCategory(categoryId);
+                    } else {
+                        // Default to first category
+                        const firstCategoryId = this.config.exercise.categories[0].id;
+                        this.selectCategory(firstCategoryId);
+                    }
+                }
+            }
+        }
+
+        // Clean up stored content
+        this.originalTabContent = null;
+        this.originalTabId = null;
 
         return this;
     }
@@ -859,54 +959,6 @@ class ZindeKalModal {
             }
         });
         
-        return this;
-    }
-
-    /**
-     * Toggle audio play/pause
-     * @deprecated Use audioPlayer.togglePlay() instead
-     */
-    toggleAudioPlay() {
-        if (this.audioPlayer) {
-            this.audioPlayer.togglePlay();
-        }
-
-        return this;
-    }
-
-    /**
-     * Play previous track
-     * @deprecated Use audioPlayer.previousTrack() instead
-     */
-    previousTrack() {
-        if (this.audioPlayer) {
-            this.audioPlayer.previousTrack();
-        }
-        
-        return this;
-    }
-
-    /**
-     * Play next track
-     * @deprecated Use audioPlayer.nextTrack() instead
-     */
-    nextTrack() {
-        if (this.audioPlayer) {
-            this.audioPlayer.nextTrack();
-        }
-        
-        return this;
-    }
-
-    /**
-     * Select and play a specific track
-     * @deprecated Use audioPlayer.selectTrack() instead
-     */
-    selectTrack(trackIndex) {
-        if (this.audioPlayer) {
-            this.audioPlayer.selectTrack(trackIndex);
-        }
-
         return this;
     }
 
@@ -999,42 +1051,6 @@ class ZindeKalModal {
             playerCanvas.style.display = 'none';
         }
         
-        return this;
-    }
-
-    /**
-     * Switch to a specific track
-     * @deprecated Use audioPlayer.switchToTrack() instead - kept for fallback compatibility
-     */
-    switchTrack(trackIndex) {
-        if (this.audioPlayer) {
-            this.audioPlayer.switchToTrack(trackIndex);
-        } else {
-            // Fallback for direct usage without audio player
-            if (trackIndex < 0 || trackIndex >= this.config.music.tracks.length) {
-                return this;
-            }
-
-            const oldIndex = this.config.music.currentTrack;
-            this.config.music.currentTrack = trackIndex;
-            const newTrack = this.config.music.tracks[trackIndex];
-
-            this.updatePlaylistVisualState(trackIndex);
-            this.updateTrackDisplay(trackIndex, newTrack);
-        }
-
-        return this;
-    }
-
-    /**
-     * Toggle audio mute
-     * @deprecated Use audioPlayer.toggleMute() instead
-     */
-    toggleAudioMute() {
-        if (this.audioPlayer) {
-            this.audioPlayer.toggleMute();
-        }
-
         return this;
     }
 
@@ -1363,6 +1379,11 @@ class ZindeKalModal {
             this.audioPlayer.pause();
         }
 
+        // Close video player if open
+        if (this.videoPlayer) {
+            this.closeVideoPlayer();
+        }
+
         // Call onClose callback
         if (this.config.events.onClose) {
             this.config.events.onClose(this);
@@ -1383,6 +1404,12 @@ class ZindeKalModal {
         if (this.audioPlayer) {
             this.audioPlayer.pause();
             this.audioPlayer = null;
+        }
+
+        // Clean up video player
+        if (this.videoPlayer) {
+            this.videoPlayer.destroy();
+            this.videoPlayer = null;
         }
 
         // Remove event listeners

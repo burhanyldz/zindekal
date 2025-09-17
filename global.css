@@ -1066,4 +1066,51 @@ BUTTON COMPONENTS
   color: var(--color-text-medium);
   min-width: 35px;
   text-align: right;
+}
+
+/* ================================
+   VIDEO PLAYER INTEGRATION
+   ================================ */
+
+.video-player-container {
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Override modal content padding when video player is active */
+.tab-content:has(.video-player-container) {
+  padding: 0 !important;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure video player fills the tab content */
+.tab-content .video-player-container {
+  min-height: 400px;
+}
+
+/* Mobile responsive adjustments for video player */
+@media (max-width: 768px) {
+  .video-player-container {
+    min-height: 300px;
+    border-radius: 8px;
+  }
+  
+  .tab-content .video-player-container {
+    min-height: 250px;
+  }
+}
+
+/* Ensure proper z-index for video player controls */
+.video-player-container .plyr {
+  z-index: 1;
+}
+
+.video-player-container .back-button {
+  z-index: 25;
 }/*# sourceMappingURL=global.css.map */

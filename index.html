@@ -9,7 +9,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="global.css">
   
+  <!-- Plyr video player dependencies -->
+  <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+  <link rel="stylesheet" href="video-player.css">
+  
   <!-- Plugin dependencies -->
+  <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js" defer></script>
+  <script src="video-player.js" defer></script>
   <script src="audio-player.js" defer></script>
   <script src="zinde-kal-modal.js" defer></script>
     
@@ -52,9 +58,9 @@
       
       // Tab configuration
       tabs: {
-        exercise: { title: "Egzersiz Videoları", enabled: true },
-        relaxing: { title: "Dinlendirici Videolar", enabled: true },
-        music: { title: "Dinlendirici Müzikler", enabled: true }
+        exercise: { title: "Egzersiz", enabled: true },
+        relaxing: { title: "Videolar", enabled: true },
+        music: { title: "Müzikler", enabled: true }
       },
       
       // Exercise content
