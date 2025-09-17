@@ -391,7 +391,7 @@ class EmbeddedAudioPlayer {
         return this;
     }
     
-    // Renamed from switchTrack to avoid confusion with modal's switchTrack method
+    // Switch to a specific track by index
     switchToTrack(trackIndex) {
         if (!this.options.tracks || trackIndex < 0 || trackIndex >= this.options.tracks.length) {
             return this;
