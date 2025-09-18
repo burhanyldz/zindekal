@@ -21,13 +21,13 @@
 </head>
 <body>
   <div class="button-container">
-    <button id="testVideoPlayer" class="zinde-kal-button">Test Video Player</button>
-    <button id="openModalWithVideo" class="zinde-kal-button">Open Modal with Video</button>
+    <button id="openModalWithVideo" class="zinde-kal-button">Open Modal with Inline Videos</button>
+    <button id="cleanupVideos" class="zinde-kal-button">Cleanup All Videos</button>
   </div>
 
   <div style="padding: 20px; max-width: 800px; margin: 0 auto;">
-    <h1>ZindeKal Video Player Test</h1>
-    <p>Test the new video player functionality integrated into the modal.</p>
+    <h1>ZindeKal Inline Video Player Test</h1>
+    <p>Test the new inline video player functionality that plays videos directly within the video cards.</p>
     
     <div id="eventLog" style="height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background: #f9f9f9; margin-top: 20px;"></div>
   </div>
@@ -43,12 +43,12 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-      // Test configuration with videos
+      // Test configuration with multiple videos
       const testConfig = {
         container: document.body,
         
         tabs: {
-          exercise: { title: "Test Videos", enabled: true },
+          exercise: { title: "Exercise Videos", enabled: true },
           relaxing: { title: "Relaxing Videos", enabled: true },
           music: { title: "Music", enabled: false }
         },
@@ -64,9 +64,18 @@
           videos: [
             {
               id: "test-video-1",
-              title: "Test Video 1",
-              description: "A test video for the video player",
+              title: "Exercise Video 1",
+              description: "Click to play inline - will replace thumbnail",
               duration: "5:00",
+              src: "videos/View_From_A_Blue_Moon_Trailer-1080p.mp4",
+              thumbnail: "thumbnails/View_From_A_Blue_Moon_Trailer-HD.jpg",
+              categoryId: "test"
+            },
+            {
+              id: "test-video-2",
+              title: "Exercise Video 2",
+              description: "Another inline video player test",
+              duration: "3:15",
               src: "videos/View_From_A_Blue_Moon_Trailer-1080p.mp4",
               thumbnail: "thumbnails/View_From_A_Blue_Moon_Trailer-HD.jpg",
               categoryId: "test"
@@ -79,8 +88,16 @@
             {
               id: "relaxing-video-1",
               title: "Relaxing Video 1",
-              description: "A relaxing test video",
+              description: "Plays directly in the card",
               duration: "3:30",
+              src: "videos/View_From_A_Blue_Moon_Trailer-1080p.mp4",
+              thumbnail: "thumbnails/View_From_A_Blue_Moon_Trailer-HD.jpg"
+            },
+            {
+              id: "relaxing-video-2",
+              title: "Relaxing Video 2",
+              description: "Multiple videos can play simultaneously",
+              duration: "4:20",
               src: "videos/View_From_A_Blue_Moon_Trailer-1080p.mp4",
               thumbnail: "thumbnails/View_From_A_Blue_Moon_Trailer-HD.jpg"
             }
@@ -91,60 +108,27 @@
           onOpen: () => logEvent('Modal opened'),
           onClose: () => logEvent('Modal closed'),
           onTabChange: (tab) => logEvent(`Tab changed to: ${tab}`),
-          onVideoPlay: (src) => logEvent(`Video started playing: ${src}`)
+          onVideoPlay: (src) => logEvent(`Inline video started playing: ${src}`)
         }
       };
 
       // Initialize modal
       modal = new ZindeKalModal(testConfig);
-      logEvent('Modal initialized');
-
-      // Test video player button
-      document.getElementById('testVideoPlayer').addEventListener('click', () => {
-        logEvent('Testing standalone video player...');
-        
-        // Create a test container
-        const testContainer = document.createElement('div');
-        testContainer.style.position = 'fixed';
-        testContainer.style.top = '50px';
-        testContainer.style.left = '50px';
-        testContainer.style.width = '600px';
-        testContainer.style.height = '400px';
-        testContainer.style.backgroundColor = '#000';
-        testContainer.style.zIndex = '9999';
-        testContainer.style.borderRadius = '8px';
-        testContainer.id = 'test-video-container';
-        
-        document.body.appendChild(testContainer);
-        
-        // Create video player
-        const videoPlayer = new ZindeKalVideoPlayer({
-          container: testContainer,
-          videoSrc: 'videos/View_From_A_Blue_Moon_Trailer-1080p.mp4',
-          videoPoster: 'thumbnails/View_From_A_Blue_Moon_Trailer-HD.jpg',
-          callbacks: {
-            onPlayerReady: () => logEvent('Standalone video player ready'),
-            onBackClick: () => {
-              logEvent('Back button clicked - removing test player');
-              videoPlayer.destroy();
-              testContainer.remove();
-            },
-            onPlay: () => logEvent('Standalone video started'),
-            onPause: () => logEvent('Standalone video paused'),
-            onEnded: () => logEvent('Standalone video ended')
-          }
-        });
-        
-        videoPlayer.init().catch(error => {
-          logEvent(`Error initializing standalone player: ${error.message}`);
-          testContainer.remove();
-        });
-      });
+      logEvent('Modal initialized with inline video support');
 
       // Open modal with video button
       document.getElementById('openModalWithVideo').addEventListener('click', () => {
-        logEvent('Opening modal with video functionality...');
+        logEvent('Opening modal with inline video functionality...');
         modal.open();
+      });
+
+      // Cleanup videos button
+      document.getElementById('cleanupVideos').addEventListener('click', () => {
+        logEvent('Cleaning up all inline video players...');
+        if (modal) {
+          modal.cleanupInlineVideoPlayers();
+          logEvent('All inline videos cleaned up');
+        }
       });
     });
   </script>

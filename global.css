@@ -400,6 +400,7 @@ BUTTON COMPONENTS
   overflow: hidden;
   height: 280px; /* Fixed height for consistency */
   transition: all 0.3s ease;
+  z-index: 1;
 }
 .video-grid .video-card:hover {
   border-color: var(--color-border-darker);
@@ -414,6 +415,7 @@ BUTTON COMPONENTS
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  height: 70%;
 }
 .video-grid .video-card .video-thumbnail-container .video-thumbnail {
   width: 100%;

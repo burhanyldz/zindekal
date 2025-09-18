@@ -269,7 +269,7 @@
   height: 100%;
   aspect-ratio: 16/9;
   background: #000;
-  border-radius: 12px;
+  border-radius: 12px 12px 0 0;
   overflow: hidden;
   visibility: visible !important;
   opacity: 1 !important;
@@ -331,10 +331,10 @@
   transition: all 0.3s ease;
 }
 
-.inline-video-player .plyr__control--overlaid:hover {
+/* .inline-video-player .plyr__control--overlaid:hover {
   background: rgba(0, 0, 0, 0.9);
   transform: scale(1.1);
-}
+} */
 
 .inline-video-player .plyr__control--overlaid svg {
   width: 28px;
