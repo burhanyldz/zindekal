@@ -221,6 +221,14 @@ class ZindeKalModal {
             
             const firstCategoryId = this.config.exercise.categories[0].id;
             this.filterVideosByCategory(firstCategoryId);
+            
+            // Center the first category in the viewport (with a small delay to ensure DOM is ready)
+            setTimeout(() => {
+                const firstCategoryElement = this.modalElement.querySelector(`[data-category="${firstCategoryId}"]`);
+                if (firstCategoryElement) {
+                    this.centerSelectedCategory(firstCategoryElement);
+                }
+            }, 100);
         }
         
         return this;
@@ -836,6 +844,9 @@ class ZindeKalModal {
         const selectedCategory = this.modalElement.querySelector(`[data-category="${categoryId}"]`);
         if (selectedCategory) {
             selectedCategory.classList.add('active');
+            
+            // Center the selected category in the viewport
+            this.centerSelectedCategory(selectedCategory);
         }
 
         // Filter videos by category (this would need to be implemented based on your data structure)
@@ -859,6 +870,40 @@ class ZindeKalModal {
         if (videoGrid) {
             videoGrid.innerHTML = this.generateVideoGrid(filteredVideos,false);
         }
+
+        return this;
+    }
+
+    /**
+     * Center the selected category card in the viewport
+     */
+    centerSelectedCategory(categoryElement) {
+        if (!categoryElement) {
+            return this;
+        }
+
+        const categoryNavScroll = this.modalElement.querySelector('.category-nav-scroll');
+        if (!categoryNavScroll) {
+            return this;
+        }
+
+        // Get the category element's position relative to the scroll container
+        const categoryRect = categoryElement.getBoundingClientRect();
+        const scrollRect = categoryNavScroll.getBoundingClientRect();
+        
+        // Calculate the category's position within the scroll container
+        const categoryLeftRelativeToScroll = categoryRect.left - scrollRect.left;
+        const categoryWidth = categoryRect.width;
+        const scrollWidth = scrollRect.width;
+        
+        // Calculate the center position
+        const targetScrollLeft = categoryNavScroll.scrollLeft + categoryLeftRelativeToScroll - (scrollWidth / 2) + (categoryWidth / 2);
+        
+        // Scroll to center the category
+        categoryNavScroll.scrollTo({
+            left: targetScrollLeft,
+            behavior: 'smooth'
+        });
 
         return this;
     }

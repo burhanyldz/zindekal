@@ -375,6 +375,7 @@ body {
     top: 0;
     background-color: var(--color-background-widget);
     z-index: 10;
+    scroll-behavior: smooth;
 
     .category-nav {
         display: flex;
