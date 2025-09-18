@@ -188,6 +188,9 @@ class ZindeKalModal {
             return this;
         }
 
+        // Initialize mobile viewport handling
+        this.initMobileViewportHandler();
+
         // Create modal HTML structure
         this.createModalStructure();
         
@@ -221,6 +224,53 @@ class ZindeKalModal {
         }
         
         return this;
+    }
+
+    /**
+     * Initialize mobile viewport handling for better mobile browser support
+     */
+    initMobileViewportHandler() {
+        // Only run on mobile devices
+        if (!this.isMobileDevice()) {
+            return;
+        }
+
+        // Set initial viewport height
+        this.setViewportHeight();
+
+        // Update on resize and orientation change
+        const updateViewport = () => {
+            // Small delay to allow browser UI to settle
+            setTimeout(() => {
+                this.setViewportHeight();
+            }, 100);
+        };
+
+        window.addEventListener('resize', updateViewport);
+        window.addEventListener('orientationchange', updateViewport);
+        
+        // Store handlers for cleanup
+        this.boundEventHandlers.set('viewportResize', updateViewport);
+    }
+
+    /**
+     * Set CSS custom property for accurate viewport height
+     */
+    setViewportHeight() {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+        
+        // Reset offsets to prevent unwanted gaps
+        document.documentElement.style.setProperty('--modal-top-offset', '0px');
+        document.documentElement.style.setProperty('--modal-bottom-offset', '0px');
+    }
+
+    /**
+     * Check if device is mobile
+     */
+    isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+               (window.innerWidth <= 768 && 'ontouchstart' in window);
     }
 
     /**
