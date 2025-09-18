@@ -26,20 +26,7 @@
   <div class="button-container">
     <button id="openModalBtn" class="zinde-kal-button">Open ZindeKal Modal</button>
     <button id="showToastBtn" class="notification-button">Show Toast Notification</button>
-    <button id="updateConfigBtn" class="zinde-kal-button">Update Config</button>
     <button id="switchToMusicBtn" class="zinde-kal-button">Open Music Tab</button>
-  </div>
-
-  <!-- Demo info -->
-  <div style="padding: 20px; max-width: 800px; margin: 0 auto;">
-    <h1>ZindeKal Modal Plugin Example</h1>
-    <p>This demonstrates the ZindeKal Modal Plugin with sample JSON configuration data. Click the buttons above to test different features.</p>
-    
-    <h2>Current Configuration</h2>
-    <pre id="configDisplay" style="background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto;"></pre>
-    
-    <h2>Event Log</h2>
-    <div id="eventLog" style="height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background: #f9f9f9;"></div>
   </div>
 
   <script>
@@ -270,51 +257,28 @@
       // Event callbacks
       events: {
         onOpen: (modal) => {
-          logEvent('Modal opened');
           console.log('ZindeKal Modal opened', modal);
         },
         onClose: (modal) => {
-          logEvent('Modal closed');
           console.log('ZindeKal Modal closed', modal);
         },
         onTabChange: (newTab, oldTab, modal) => {
-          logEvent(`Tab changed: ${oldTab} → ${newTab}`);
           console.log('Tab changed:', { newTab, oldTab, modal });
         },
         onVideoPlay: (videoSrc, modal) => {
-          logEvent(`Video play requested: ${videoSrc}`);
           console.log('Video play requested:', videoSrc);
           
           // Custom video player integration example
           alert(`Playing video: ${videoSrc}\\n\\nIn a real implementation, you would:\\n- Open a video player\\n- Start playback\\n- Track viewing progress`);
         },
         onAudioPlay: (track, modal) => {
-          logEvent(`Audio playing: ${track?.title || 'Unknown'}`);
           console.log('Audio playing:', track);
         },
         onAudioPause: (track, modal) => {
-          logEvent(`Audio paused: ${track?.title || 'Unknown'}`);
           console.log('Audio paused:', track);
         }
       }
     };
-
-    // Event logging function
-    function logEvent(message) {
-      const eventLog = document.getElementById('eventLog');
-      const timestamp = new Date().toLocaleTimeString();
-      const logEntry = document.createElement('div');
-      logEntry.style.marginBottom = '5px';
-      logEntry.innerHTML = `<strong>${timestamp}:</strong> ${message}`;
-      eventLog.appendChild(logEntry);
-      eventLog.scrollTop = eventLog.scrollHeight;
-    }
-
-    // Display current configuration
-    function updateConfigDisplay() {
-      const configDisplay = document.getElementById('configDisplay');
-      configDisplay.textContent = JSON.stringify(sampleConfig, null, 2);
-    }
 
     // Initialize the modal plugin
     let zindeKalModal;
@@ -323,11 +287,7 @@
       try {
         // Initialize modal with sample configuration
         zindeKalModal = new ZindeKalModal(sampleConfig);
-        logEvent('Plugin initialized successfully');
-        
-        // Display configuration
-        updateConfigDisplay();
-        
+                
         // Bind demo buttons
         document.getElementById('openModalBtn').addEventListener('click', () => {
           zindeKalModal.open();
@@ -336,31 +296,7 @@
         document.getElementById('showToastBtn').addEventListener('click', () => {
           zindeKalModal.showToast('Bu bir test bildirimidir! Plugin doğru çalışıyor.');
         });
-        
-        document.getElementById('updateConfigBtn').addEventListener('click', () => {
-          // Example of updating configuration
-          const newConfig = {
-            music: {
-              currentTrack: 0,
-              tracks: [
-                ...sampleConfig.music.tracks,
-                {
-                  id: "new-track",
-                  title: "Yeni Parça",
-                  artist: "Test Sanatçısı",
-                  src: "music/Vivaldi - The Four Seasons.mp3",
-                  duration: "2:30"
-                }
-              ]
-            }
-          };
-          
-          zindeKalModal.updateConfig(newConfig);
-          sampleConfig.music = newConfig.music; // Update display config
-          updateConfigDisplay();
-          logEvent('Configuration updated - New track added');
-        });
-        
+              
         document.getElementById('switchToMusicBtn').addEventListener('click', () => {
           zindeKalModal.open();
           zindeKalModal.switchTab('music');
@@ -368,7 +304,6 @@
         
       } catch (error) {
         console.error('Failed to initialize ZindeKal Modal:', error);
-        logEvent(`Error: ${error.message}`);
       }
     });
 
