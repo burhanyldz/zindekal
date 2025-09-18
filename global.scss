@@ -376,6 +376,7 @@ body {
     background-color: var(--color-background-widget);
     z-index: 10;
     scroll-behavior: smooth;
+    border-bottom: 5px solid var(--color-background-widget);
 
     .category-nav {
         display: flex;
@@ -480,7 +481,7 @@ body {
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            height: 70%;
+            min-height: 70%;
 
             .video-thumbnail {
                 width: 100%;

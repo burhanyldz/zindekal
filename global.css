@@ -344,6 +344,7 @@ BUTTON COMPONENTS
   background-color: var(--color-background-widget);
   z-index: 10;
   scroll-behavior: smooth;
+  border-bottom: 5px solid var(--color-background-widget);
 }
 .category-nav-scroll .category-nav {
   display: flex;
@@ -439,7 +440,7 @@ BUTTON COMPONENTS
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  height: 70%;
+  min-height: 70%;
 }
 .video-grid .video-card .video-thumbnail-container .video-thumbnail {
   width: 100%;
