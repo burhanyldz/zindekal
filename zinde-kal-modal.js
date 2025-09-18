@@ -65,7 +65,7 @@ class ZindeKalModal {
             // Toast notification settings
             toast: {
                 autoHideDelay: 5000,
-                icon: "images/kanka_head.png",
+                icon: "images/kanka.png",
                 message: "",
                 enabled: true
             },
@@ -544,6 +544,9 @@ class ZindeKalModal {
                         <div class="progress-bar" style="cursor: pointer;">
                             <div class="progress-bar-filled" style="width: 0%;"></div>
                             <div class="progress-bar-thumb" style="left: 0%;"></div>
+                            <div class="progress-time-tooltip" style="display: none;">
+                                <span class="tooltip-time">00:00</span>
+                            </div>
                         </div>
                         <div class="time-display">
                             <span>00:00</span> / <span>00:00</span>

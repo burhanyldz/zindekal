@@ -14,6 +14,7 @@ class EmbeddedAudioPlayer {
         
         this.isPlaying = false;
         this.isDragging = false;
+        this.isManualSeek = false;
         this.currentTime = 0;
         this.duration = 0;
         this.volume = 1;
@@ -60,8 +61,8 @@ class EmbeddedAudioPlayer {
             this.updatePlayButton();
             this._stopPlayedInterval();
             
-            // Auto-play next track if tracks are available
-            if (this.options.tracks && this.options.tracks.length > 1) {
+            // Only auto-play next track if the song ended naturally (not from manual seeking)
+            if (!this.isDragging && !this.isManualSeek && this.options.tracks && this.options.tracks.length > 1) {
                 // Calculate next track index
                 const currentIndex = this.options.currentTrackIndex;
                 const nextIndex = currentIndex < this.options.tracks.length - 1
@@ -71,13 +72,14 @@ class EmbeddedAudioPlayer {
                 // Switch to next track
                 this.switchToTrack(nextIndex);
                 
-                // If autoplay is enabled, start playing the next track
-                if (this.options.autoplay) {
-                    this.play().catch(e => {
-                        console.log('Autoplay was prevented:', e);
-                    });
-                }
+                // Auto-play the next track (since the previous one was playing)
+                this.play().catch(e => {
+                    console.log('Auto-play next track was prevented:', e);
+                });
             }
+            
+            // Reset manual seek flag
+            this.isManualSeek = false;
         });
         
         this.audio.addEventListener('play', () => {
@@ -125,6 +127,8 @@ class EmbeddedAudioPlayer {
         this.progressBarFilled = this.options.container.querySelector('.progress-bar-filled');
         this.progressBarThumb = this.options.container.querySelector('.progress-bar-thumb');
         this.timeDisplay = this.options.container.querySelector('.time-display');
+        this.timeTooltip = this.options.container.querySelector('.progress-time-tooltip');
+        this.tooltipTime = this.options.container.querySelector('.tooltip-time');
         
         // Navigation and volume controls are handled by modal's event delegation system
         // this.prevButton = this.options.container.querySelector('[data-action="prev-track"]');
@@ -147,13 +151,38 @@ class EmbeddedAudioPlayer {
         
         // Progress bar interaction - Safe to handle directly as it doesn't use data-action
         if (this.progressBar) {
+            // Mouse events
             this.progressBar.addEventListener('mousedown', (e) => this.startDrag(e));
-            this.progressBar.addEventListener('click', (e) => this.seekToPosition(e));
+            this.progressBar.addEventListener('click', (e) => {
+                if (!this.isDragging) {
+                    this.isManualSeek = true; // Mark as manual seek
+                    this.seekToPosition(e);
+                    // Reset manual seek flag after a short delay
+                    setTimeout(() => {
+                        this.isManualSeek = false;
+                    }, 500);
+                }
+            });
+            
+            // Touch events for mobile support
+            this.progressBar.addEventListener('touchstart', (e) => this.startDrag(e), { passive: false });
         }
         
-        // Global mouse events for dragging
+        // Progress bar thumb specific events for better interaction
+        if (this.progressBarThumb) {
+            // Mouse events on thumb
+            this.progressBarThumb.addEventListener('mousedown', (e) => this.startDrag(e));
+            
+            // Touch events on thumb
+            this.progressBarThumb.addEventListener('touchstart', (e) => this.startDrag(e), { passive: false });
+        }
+        
+        // Global mouse and touch events for dragging
         document.addEventListener('mousemove', (e) => this.drag(e));
         document.addEventListener('mouseup', () => this.endDrag());
+        document.addEventListener('touchmove', (e) => this.drag(e), { passive: false });
+        document.addEventListener('touchend', () => this.endDrag());
+        document.addEventListener('touchcancel', () => this.endDrag());
     }
     
     updatePlayButton() {
@@ -194,34 +223,102 @@ class EmbeddedAudioPlayer {
     
     startDrag(e) {
         this.isDragging = true;
+        this.isManualSeek = true; // Mark as manual seek
+        
+        // Add visual feedback
+        if (this.progressBarThumb) {
+            this.progressBarThumb.classList.add('dragging');
+        }
+        
+        // Show tooltip
+        if (this.timeTooltip) {
+            this.timeTooltip.style.display = 'block';
+            this.timeTooltip.classList.add('visible');
+        }
+        
         this.seekToPosition(e);
         e.preventDefault();
+        e.stopPropagation();
     }
-    
+
     drag(e) {
         if (!this.isDragging) return;
         this.seekToPosition(e);
+        this.updateTooltipPosition(e);
         e.preventDefault();
     }
-    
+
     endDrag() {
-        this.isDragging = false;
+        if (this.isDragging) {
+            this.isDragging = false;
+            
+            // Remove visual feedback
+            if (this.progressBarThumb) {
+                this.progressBarThumb.classList.remove('dragging');
+            }
+            
+            // Hide tooltip
+            if (this.timeTooltip) {
+                this.timeTooltip.classList.remove('visible');
+                // Hide after transition
+                setTimeout(() => {
+                    if (!this.isDragging) {
+                        this.timeTooltip.style.display = 'none';
+                    }
+                }, 200);
+            }
+            
+            // Reset manual seek flag after a short delay to prevent auto-advance
+            setTimeout(() => {
+                this.isManualSeek = false;
+            }, 500);
+        }
     }
-    
+
     seekToPosition(e) {
         if (!this.progressBar || this.duration === 0) return;
         
+        // Handle both mouse and touch events
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        
         const rect = this.progressBar.getBoundingClientRect();
-        const percentage = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        const percentage = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
         const newTime = percentage * this.duration;
         
         this.audio.currentTime = newTime;
         this.currentTime = newTime;
         this.updateTimeline();
         this.updateTimeDisplay();
+        
+        // Update tooltip if dragging
+        if (this.isDragging) {
+            this.updateTooltipTime(newTime);
+            this.updateTooltipPosition(e);
+        }
     }
-    
-    toggleMute() {
+
+    updateTooltipPosition(e) {
+        if (!this.timeTooltip || !this.progressBar) return;
+        
+        // Handle both mouse and touch events
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        
+        const rect = this.progressBar.getBoundingClientRect();
+        const percentage = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        
+        // Position tooltip at the mouse/touch position
+        this.timeTooltip.style.left = percentage * 100 + '%';
+    }
+
+    updateTooltipTime(time) {
+        if (!this.tooltipTime) return;
+        
+        const minutes = Math.floor(time / 60);
+        const seconds = Math.floor(time % 60);
+        const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        this.tooltipTime.textContent = timeStr;
+    }    toggleMute() {
         if (this.isMuted) {
             // Unmute: restore previous volume (or set to 0.5 if previous was 0)
             this.isMuted = false;

@@ -298,8 +298,8 @@ body {
         gap: 12px;
 
         .alert-icon {
-            width: 24px;
-            height: 24px;
+            width: 48px;
+            height: 48px;
             flex-shrink: 0;
         }
 
@@ -612,7 +612,7 @@ body {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                padding: 12px 24px;
+                padding: 12px;
                 font-size: 14px;
                 color: var(--color-text-dark);
 
