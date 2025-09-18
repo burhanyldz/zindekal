@@ -195,7 +195,12 @@
   z-index: 10 !important;
 }
 
-@media (max-width: 600px) {
+/* Container query for video cards - hide volume range when card is narrow */
+.video-card {
+  container-type: inline-size;
+}
+
+@container (max-width: 400px) {
   .plyr__volume input[type=range] {
     display: none !important;
   }
