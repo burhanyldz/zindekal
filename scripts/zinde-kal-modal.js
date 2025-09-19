@@ -873,9 +873,18 @@ class ZindeKalModal {
             ZindeKalModal.CATEGORIES && 
             ZindeKalModal.CATEGORIES.length > 0) {
             
-            const firstCategoryId = ZindeKalModal.CATEGORIES[0].id;
-            this.selectCategory(firstCategoryId);
+            // Only select the first category if none is currently active.
+            // Re-selecting/unconditionally re-rendering replaces the .video-grid innerHTML
+            // and destroys any initialized inline video players.
+            const activeCategory = this.modalElement.querySelector('.category-item.active');
+            if (!activeCategory) {
+                const firstCategoryId = ZindeKalModal.CATEGORIES[0].id;
+                this.selectCategory(firstCategoryId);
+            }
         }
+
+        // Ensure to clear initialized video players when switching tabs
+        this.pauseAllOtherVideos();
 
         // Call onTabChange callback
         if (this.eventHandlers.onTabChange) {
@@ -1779,6 +1788,7 @@ class ZindeKalModal {
      * Clean up all inline video players
      */
     cleanupInlineVideoPlayers() {
+ console.log("cleanupInlineVideoPlayers ");
         const inlineVideoPlayers = this.modalElement.querySelectorAll('.inline-video-player');
         inlineVideoPlayers.forEach(playerContainer => {
             if (playerContainer._plyrInstance) {
