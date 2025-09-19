@@ -22,19 +22,19 @@
   <script src="https://unpkg.com/@rive-app/canvas" defer></script>
 </head>
 <body>
-  <!-- Demo buttons -->
+  <!-- Demo düğmeleri -->
   <div class="button-container">
-    <button id="openModalBtn" class="zinde-kal-button">Open ZindeKal Modal</button>
-    <button id="showToastBtn" class="notification-button">Show Toast Notification</button>
-    <button id="switchToMusicBtn" class="zinde-kal-button">Open Music Tab</button>
+    <button id="openModalBtn" class="zinde-kal-button">ZindeKal Modalini Aç</button>
+    <button id="showToastBtn" class="notification-button">Bildirim Göster</button>
+    <button id="switchToMusicBtn" class="zinde-kal-button">Müzik Sekmesini Aç</button>
   </div>
 
   <script>
-    // Sample configuration data
+    // Örnek yapılandırma verisi
     const sampleConfig = {
       container: document.body,
       
-      // Modal settings
+      // Modal ayarları
       modal: {
         title: "Zinde Kal",
         closeOnOverlay: true,
@@ -42,7 +42,7 @@
         showCloseButton: true
       },
       
-      // Exercise content
+      // Egzersiz içeriği (videolar). Kategoriler sabittir ve JS içinde tanımlıdır.
       exercise: {
         videos: [
           {
@@ -102,7 +102,7 @@
         ]
       },
       
-      // Relaxing videos
+      // Rahatlatıcı videolar
       relaxing: {
         videos: [
           {
@@ -124,7 +124,7 @@
         ]
       },
       
-      // Music playlist
+      // Müzik çalma listesi
       music: {
         currentTrack: 0,
         autoplay: false,
@@ -168,37 +168,37 @@
       }
     };
 
-    // Initialize the modal plugin
+  // Modal eklentisini başlat
     let zindeKalModal;
     
     document.addEventListener('DOMContentLoaded', function() {
       try {
-        // Initialize modal with sample configuration
+        // Eklentiyi örnek konfigürasyonla başlat
         zindeKalModal = new ZindeKalModal(sampleConfig);
 
-        // Bind event handlers (replaces the old events config)
+        // Olay bağlayıcıları (Metodlarla bağlanır)
         zindeKalModal
           .onOpen((modal) => {
-            console.log('ZindeKal Modal opened', modal);
+            console.log('ZindeKal Modal açıldı', modal);
           })
           .onClose((modal) => {
-            console.log('ZindeKal Modal closed', modal);
+            console.log('ZindeKal Modal kapandı', modal);
           })
           .onTabChange((newTab, oldTab, modal) => {
-            console.log('Tab changed:', { newTab, oldTab, modal });
+            console.log('Sekme değişti:', { newTab, oldTab, modal });
           })
           .onVideoPlay((videoSrc, modal) => {
-            console.log('Video play requested:', videoSrc);
+            console.log('Video oynatma istendi:', videoSrc);
           })
           .onVideoPause((videoSrc, modal) => {
-            console.log('Video paused:', videoSrc);
+            console.log('Video durduruldu:', videoSrc);
           })
           .onAudioPlay((track, modal) => {
-            console.log('Audio playing:', track);
+            console.log('Ses çalıyor:', track);
           })
           .onAudioPause((track, modal) => {
-            console.log('Audio paused:', track);
-          }); 
+            console.log('Ses duraklatıldı:', track);
+          });
           
         
         document.getElementById('openModalBtn').addEventListener('click', () => {
@@ -219,41 +219,22 @@
       }
     });
 
-    // Global functions for testing
-    window.testAPI = {
-      // Test modal operations
-      openModal: () => zindeKalModal.open(),
-      closeModal: () => zindeKalModal.close(),
-      
-      // Test tab switching
-      switchToExercise: () => zindeKalModal.switchTab('exercise'),
-      switchToRelaxing: () => zindeKalModal.switchTab('relaxing'),
-      switchToMusic: () => zindeKalModal.switchTab('music'),
-      
-      // Test music controls
-      playPause: () => zindeKalModal.toggleAudioPlay(),
-      nextTrack: () => zindeKalModal.nextTrack(),
-      prevTrack: () => zindeKalModal.previousTrack(),
-      
-      // Test notifications
-      showToast: (message) => zindeKalModal.showToast(message),
-      hideToast: () => zindeKalModal.hideToast(),
-      
-      // Test state
-      isOpen: () => zindeKalModal.isOpen(),
-      getCurrentTab: () => zindeKalModal.getCurrentTab(),
-      getCurrentTrack: () => zindeKalModal.getCurrentTrack(),
-      
-      // Test configuration
-      getConfig: () => zindeKalModal.getConfig(),
-      
-      // Test cleanup
-      destroy: () => zindeKalModal.destroy()
-    };
+    // zindeKalModal fonksiyonları
+    // .open()
+    // .close()
+    // .switchTab(tabId)
+    // .toggleAudioPlay()
+    // .nextTrack()
+    // .previousTrack()
+    // .showToast(message)
+    // .hideToast()
+    // .isOpen()
+    // .getCurrentTab()
+    // .getCurrentTrack()
+    // .getConfig()
+    // .updateConfig(newConfig)
+    // .destroy()
 
-    // Log available test functions
-    console.log('Available test functions:', Object.keys(window.testAPI));
-    console.log('Example usage: testAPI.openModal(), testAPI.showToast("Hello!")');
   </script>
 
 </body>
