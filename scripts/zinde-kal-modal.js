@@ -120,7 +120,6 @@ class ZindeKalModal {
                 icon: "yuruyus.svg",
                 iconClass: "icon-yuruyus",
                 videoCount: 3,
-                badge: "Yeni"
             },
             {
                 id: "eye",
@@ -128,7 +127,6 @@ class ZindeKalModal {
                 icon: "goz.svg",
                 iconClass: "icon-goz",
                 videoCount: 3,
-                badge: "Yeni"
             },
             {
                 id: "back-standing",
@@ -136,7 +134,6 @@ class ZindeKalModal {
                 icon: "ayakta_bel.svg",
                 iconClass: "icon-ayakta-bel",
                 videoCount: 1,
-                badge: "Yeni"
             },
             {
                 id: "breathing",
@@ -144,7 +141,6 @@ class ZindeKalModal {
                 icon: "nefes.svg",
                 iconClass: "icon-nefes",
                 videoCount: 1,
-                badge: "Yeni"
             }
         ];
     }
