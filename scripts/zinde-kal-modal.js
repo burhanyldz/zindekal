@@ -23,6 +23,7 @@ class ZindeKalModal {
             onClose: null,
             onTabChange: null,
             onVideoPlay: null,
+            onVideoPause: null,
             onAudioPlay: null,
             onAudioPause: null
         };
@@ -47,16 +48,8 @@ class ZindeKalModal {
                 showCloseButton: true
             },
             
-            // Tab configuration
-            tabs: {
-                exercise: { title: "Egzersizler", enabled: true },
-                music: { title: "Müzikler", enabled: true },
-                relaxing: { title: "Videolar", enabled: true }
-            },
-            
             // Exercise categories and videos
             exercise: {
-                categories: [],
                 videos: []
             },
             
@@ -92,6 +85,78 @@ class ZindeKalModal {
                 muted: "muted.svg",
                 unmuted: "unmuted.svg"
             }
+        };
+    }
+
+    /**
+     * Hardcoded exercise categories (not configurable)
+     */
+    static get CATEGORIES() {
+        return [
+            {
+                id: "ankle",
+                title: "Ayak Bileği Egzersizi",
+                icon: "ayak.svg",
+                iconClass: "icon-ayak",
+                videoCount: 2
+            },
+            {
+                id: "shoulder-standing",
+                title: "Ayakta Omuz Egzersizi",
+                icon: "ayakta_omuz.svg",
+                iconClass: "icon-omuz",
+                videoCount: 6
+            },
+            {
+                id: "shoulder-sitting",
+                title: "Oturarak Omuz Egzersizi",
+                icon: "oturarak_omuz.svg",
+                iconClass: "icon-oturarak-omuz",
+                videoCount: 4
+            },
+            {
+                id: "walking",
+                title: "Yürüyüş Egzersizi",
+                icon: "yuruyus.svg",
+                iconClass: "icon-yuruyus",
+                videoCount: 3,
+                badge: "Yeni"
+            },
+            {
+                id: "eye",
+                title: "Göz Egzersizi",
+                icon: "goz.svg",
+                iconClass: "icon-goz",
+                videoCount: 3,
+                badge: "Yeni"
+            },
+            {
+                id: "back-standing",
+                title: "Ayakta Bel Egzersizi",
+                icon: "ayakta_bel.svg",
+                iconClass: "icon-ayakta-bel",
+                videoCount: 1,
+                badge: "Yeni"
+            },
+            {
+                id: "breathing",
+                title: "Nefes Egzersizi",
+                icon: "nefes.svg",
+                iconClass: "icon-nefes",
+                videoCount: 1,
+                badge: "Yeni"
+            }
+        ];
+    }
+
+    /**
+     * Hardcoded tab configuration (not configurable)
+     */
+    static get TABS() {
+        return {
+            exercise: { title: "Egzersizler", enabled: true },
+            music: { title: "Müzikler", enabled: true },
+            relaxing: { title: "Videolar", enabled: true }
         };
     }
 
@@ -197,6 +262,11 @@ class ZindeKalModal {
         return this;
     }
 
+    onVideoPause(callback) {
+        this.eventHandlers.onVideoPause = callback;
+        return this;
+    }
+
     onAudioPlay(callback) {
         this.eventHandlers.onAudioPlay = callback;
         return this;
@@ -241,10 +311,10 @@ class ZindeKalModal {
     initializeDefaultCategory() {
         // Only initialize if we're on exercise tab and have categories
         if (this.currentTab === 'exercise' && 
-            this.config.exercise.categories && 
-            this.config.exercise.categories.length > 0) {
+            ZindeKalModal.CATEGORIES && 
+            ZindeKalModal.CATEGORIES.length > 0) {
             
-            const firstCategoryId = this.config.exercise.categories[0].id;
+            const firstCategoryId = ZindeKalModal.CATEGORIES[0].id;
             this.filterVideosByCategory(firstCategoryId);
             
             // Center the first category in the viewport (with a small delay to ensure DOM is ready)
@@ -337,7 +407,7 @@ class ZindeKalModal {
      * Generate modal header with tabs and close button
      */
     generateModalHeader() {
-        const enabledTabs = Object.entries(this.config.tabs)
+        const enabledTabs = Object.entries(ZindeKalModal.TABS)
             .filter(([key, tab]) => tab.enabled)
             .map(([key, tab]) => `
                 <a href="#" class="tab-item ${key === this.currentTab ? 'active' : ''}" data-tab="${key}">
@@ -366,18 +436,18 @@ class ZindeKalModal {
         let content = '';
         
         // Exercise tab
-        if (this.config.tabs.exercise.enabled) {
+        if (ZindeKalModal.TABS.exercise.enabled) {
             content += this.generateExerciseTab();
         }
         
         
         // Music tab
-        if (this.config.tabs.music.enabled) {
+        if (ZindeKalModal.TABS.music.enabled) {
             content += this.generateMusicTab();
         }
         
             // Relaxing videos tab
-        if (this.config.tabs.relaxing.enabled) {
+        if (ZindeKalModal.TABS.relaxing.enabled) {
             content += this.generateRelaxingTab();
         }
     
@@ -402,11 +472,11 @@ class ZindeKalModal {
      * Generate category navigation for exercise tab
      */
     generateCategoryNavigation() {
-        if (!this.config.exercise.categories.length) {
+        if (!ZindeKalModal.CATEGORIES.length) {
             return '';
         }
 
-        const categories = this.config.exercise.categories.map((category, index) => {
+        const categories = ZindeKalModal.CATEGORIES.map((category, index) => {
             // Calculate actual video count for this category
             const videoCount = this.config.exercise.videos.filter(video => video.categoryId === category.id).length;
             
@@ -772,7 +842,7 @@ class ZindeKalModal {
      * Switch between tabs
      */
     switchTab(tabName) {
-        if (!this.config.tabs[tabName]?.enabled) {
+        if (!ZindeKalModal.TABS[tabName]?.enabled) {
             return this;
         }
 
@@ -800,10 +870,10 @@ class ZindeKalModal {
 
         // Ensure first category is selected when switching to exercise tab
         if (tabName === 'exercise' && 
-            this.config.exercise.categories && 
-            this.config.exercise.categories.length > 0) {
+            ZindeKalModal.CATEGORIES && 
+            ZindeKalModal.CATEGORIES.length > 0) {
             
-            const firstCategoryId = this.config.exercise.categories[0].id;
+            const firstCategoryId = ZindeKalModal.CATEGORIES[0].id;
             this.selectCategory(firstCategoryId);
         }
 
@@ -1054,6 +1124,9 @@ class ZindeKalModal {
         // Add event listener for when video is paused
         player.on('pause', () => {
             // Video paused handling can go here if needed
+            if (this.eventHandlers.onVideoPause) {
+                this.eventHandlers.onVideoPause(videoSrc, this);
+            }
         });
 
         player.on('loadstart', () => {
@@ -1657,13 +1730,13 @@ class ZindeKalModal {
 
         // Ensure first category is selected and videos filtered if on exercise tab
         if (this.currentTab === 'exercise' && 
-            this.config.exercise.categories && 
-            this.config.exercise.categories.length > 0) {
+            ZindeKalModal.CATEGORIES && 
+            ZindeKalModal.CATEGORIES.length > 0) {
             
             // Check if any category is currently active
             const activeCategory = this.modalElement.querySelector('.category-item.active');
             if (!activeCategory) {
-                const firstCategoryId = this.config.exercise.categories[0].id;
+                const firstCategoryId = ZindeKalModal.CATEGORIES[0].id;
                 this.selectCategory(firstCategoryId);
             }
         }

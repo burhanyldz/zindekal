@@ -7,16 +7,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="global.css">
+  <link rel="stylesheet" href="styles/global.css">
   
   <!-- Plyr video player dependencies -->
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
-  <link rel="stylesheet" href="video-player.css">
+  <link rel="stylesheet" href="styles/video-player.css">
   
   <!-- Plugin dependencies -->
   <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js" defer></script>
-  <script src="audio-player.js" defer></script>
-  <script src="zinde-kal-modal.js" defer></script>
+  <script src="scripts/audio-player.js" defer></script>
+  <script src="scripts/zinde-kal-modal.js" defer></script>
     
   <!-- Optional: Rive animation support -->
   <script src="https://unpkg.com/@rive-app/canvas" defer></script>
@@ -42,70 +42,8 @@
         showCloseButton: true
       },
       
-      // Tab configuration
-      tabs: {
-        exercise: { title: "Egzersizler", enabled: true },
-        music: { title: "Müzikler", enabled: true },
-        relaxing: { title: "Videolar", enabled: true }
-      },
-      
       // Exercise content
       exercise: {
-        categories: [
-          {
-            id: "ankle",
-            title: "Ayak Bileği Egzersizi",
-            icon: "ayak.svg",
-            iconClass: "icon-ayak",
-            videoCount: 2
-          },
-          {
-            id: "shoulder-standing",
-            title: "Ayakta Omuz Egzersizi",
-            icon: "ayakta_omuz.svg",
-            iconClass: "icon-omuz",
-            videoCount: 6
-          },
-          {
-            id: "shoulder-sitting",
-            title: "Oturarak Omuz Egzersizi",
-            icon: "oturarak_omuz.svg",
-            iconClass: "icon-oturarak-omuz",
-            videoCount: 4
-          },
-          {
-            id: "walking",
-            title: "Yürüyüş Egzersizi",
-            icon: "yuruyus.svg",
-            iconClass: "icon-yuruyus",
-            videoCount: 3,
-            badge: "Yeni"
-          },
-          {
-            id: "eye",
-            title: "Göz Egzersizi",
-            icon: "goz.svg",
-            iconClass: "icon-goz",
-            videoCount: 3,
-            badge: "Yeni"
-          },
-          {
-            id: "back-standing",
-            title: "Ayakta Bel Egzersizi",
-            icon: "ayakta_bel.svg",
-            iconClass: "icon-ayakta-bel",
-            videoCount: 1,
-            badge: "Yeni"
-          },
-          {
-            id: "breathing",
-            title: "Nefes Egzersizi",
-            icon: "nefes.svg",
-            iconClass: "icon-nefes",
-            videoCount: 1,
-            badge: "Yeni"
-          }
-        ],
         videos: [
           {
             id: "ankle-1",
@@ -251,22 +189,24 @@
           })
           .onVideoPlay((videoSrc, modal) => {
             console.log('Video play requested:', videoSrc);
-            
-            // Custom video player integration example
-            alert(`Playing video: ${videoSrc}\\n\\nIn a real implementation, you would:\\n- Open a video player\\n- Start playback\\n- Track viewing progress`);
+          })
+          .onVideoPause((videoSrc, modal) => {
+            console.log('Video paused:', videoSrc);
           })
           .onAudioPlay((track, modal) => {
             console.log('Audio playing:', track);
           })
           .onAudioPause((track, modal) => {
             console.log('Audio paused:', track);
-          });        
+          }); 
+          
+        
+        document.getElementById('openModalBtn').addEventListener('click', () => {
+          zindeKalModal.open();
+        });
         
         document.getElementById('showToastBtn').addEventListener('click', () => {
-          zindeKalModal.showToast('MEBİ\'de 2 saattir çalışıyorsunuz. Kısa bir mola vermek ister misiniz? Hadi, şimdi küçük bir egzersiz yapma zamanı!', {
-            autoHideDelay: 5000,
-            icon: 'images/kanka.png'
-          });
+          zindeKalModal.showToast('MEBİ\'de 2 saattir çalışıyorsunuz. Kısa bir mola vermek ister misiniz? Hadi, şimdi küçük bir egzersiz yapma zamanı!');
         });
               
         document.getElementById('switchToMusicBtn').addEventListener('click', () => {
