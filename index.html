@@ -227,56 +227,6 @@
             duration: "6:18"
           }
         ]
-      },
-      
-      // Toast notification
-      toast: {
-        enabled: true,
-        message: "MEBİ'de 2 saattir çalışıyorsunuz. Kısa bir mola vermek ister misiniz? Hadi, şimdi küçük bir egzersiz yapma zamanı!",
-        icon: "images/kanka.png",
-        autoHideDelay: 5000
-      },
-      
-      // Asset paths
-      assets: {
-        basePath: "images/",
-        icons: {
-          close: "close.svg",
-          closeActive: "close-active.svg",
-          play: "play.svg",
-          pause: "pause.svg",
-          next: "next.svg",
-          prev: "prev.svg",
-          playSmall: "play-sm.svg",
-          thumbnailPlay: "thumbnail-play.svg",
-          muted: "muted.svg",
-          unmuted: "unmuted.svg"
-        }
-      },
-      
-      // Event callbacks
-      events: {
-        onOpen: (modal) => {
-          console.log('ZindeKal Modal opened', modal);
-        },
-        onClose: (modal) => {
-          console.log('ZindeKal Modal closed', modal);
-        },
-        onTabChange: (newTab, oldTab, modal) => {
-          console.log('Tab changed:', { newTab, oldTab, modal });
-        },
-        onVideoPlay: (videoSrc, modal) => {
-          console.log('Video play requested:', videoSrc);
-          
-          // Custom video player integration example
-          alert(`Playing video: ${videoSrc}\\n\\nIn a real implementation, you would:\\n- Open a video player\\n- Start playback\\n- Track viewing progress`);
-        },
-        onAudioPlay: (track, modal) => {
-          console.log('Audio playing:', track);
-        },
-        onAudioPause: (track, modal) => {
-          console.log('Audio paused:', track);
-        }
       }
     };
 
@@ -287,6 +237,30 @@
       try {
         // Initialize modal with sample configuration
         zindeKalModal = new ZindeKalModal(sampleConfig);
+
+        // Bind event handlers (replaces the old events config)
+        zindeKalModal
+          .onOpen((modal) => {
+            console.log('ZindeKal Modal opened', modal);
+          })
+          .onClose((modal) => {
+            console.log('ZindeKal Modal closed', modal);
+          })
+          .onTabChange((newTab, oldTab, modal) => {
+            console.log('Tab changed:', { newTab, oldTab, modal });
+          })
+          .onVideoPlay((videoSrc, modal) => {
+            console.log('Video play requested:', videoSrc);
+            
+            // Custom video player integration example
+            alert(`Playing video: ${videoSrc}\\n\\nIn a real implementation, you would:\\n- Open a video player\\n- Start playback\\n- Track viewing progress`);
+          })
+          .onAudioPlay((track, modal) => {
+            console.log('Audio playing:', track);
+          })
+          .onAudioPause((track, modal) => {
+            console.log('Audio paused:', track);
+          });
                 
         // Bind demo buttons
         document.getElementById('openModalBtn').addEventListener('click', () => {
@@ -294,7 +268,10 @@
         });
         
         document.getElementById('showToastBtn').addEventListener('click', () => {
-          zindeKalModal.showToast('Bu bir test bildirimidir! Plugin doğru çalışıyor.');
+          zindeKalModal.showToast('MEBİ\'de 2 saattir çalışıyorsunuz. Kısa bir mola vermek ister misiniz? Hadi, şimdi küçük bir egzersiz yapma zamanı!', {
+            autoHideDelay: 5000,
+            icon: 'images/kanka.png'
+          });
         });
               
         document.getElementById('switchToMusicBtn').addEventListener('click', () => {

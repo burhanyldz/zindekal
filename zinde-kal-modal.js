@@ -17,6 +17,16 @@ class ZindeKalModal {
         this.toastElement = null;
         this.boundEventHandlers = new Map();
         
+        // Event handlers (not in config anymore)
+        this.eventHandlers = {
+            onOpen: null,
+            onClose: null,
+            onTabChange: null,
+            onVideoPlay: null,
+            onAudioPlay: null,
+            onAudioPause: null
+        };
+        
         // Initialize the plugin
         this.init();
     }
@@ -60,41 +70,27 @@ class ZindeKalModal {
                 tracks: [],
                 currentTrack: 0,
                 autoplay: false
-            },
-            
-            // Toast notification settings
-            toast: {
-                autoHideDelay: 5000,
-                icon: "images/kanka.png",
-                message: "",
-                enabled: true
-            },
-            
-            // Asset paths
-            assets: {
-                basePath: "images/",
-                icons: {
-                    close: "close.svg",
-                    closeActive: "close-active.svg",
-                    play: "play.svg",
-                    pause: "pause.svg",
-                    next: "next.svg",
-                    prev: "prev.svg",
-                    playSmall: "play-sm.svg",
-                    thumbnailPlay: "thumbnail-play.svg",
-                    muted: "muted.svg",
-                    unmuted: "unmuted.svg"
-                }
-            },
-            
-            // Event callbacks
-            events: {
-                onOpen: null,
-                onClose: null,
-                onTabChange: null,
-                onVideoPlay: null,
-                onAudioPlay: null,
-                onAudioPause: null
+            }
+        };
+    }
+
+    /**
+     * Internal asset paths (not configurable)
+     */
+    static get ASSETS() {
+        return {
+            basePath: "images/",
+            icons: {
+                close: "close.svg",
+                closeActive: "close-active.svg",
+                play: "play.svg",
+                pause: "pause.svg",
+                next: "next.svg",
+                prev: "prev.svg",
+                playSmall: "play-sm.svg",
+                thumbnailPlay: "thumbnail-play.svg",
+                muted: "muted.svg",
+                unmuted: "unmuted.svg"
             }
         };
     }
@@ -179,6 +175,39 @@ class ZindeKalModal {
     }
 
     /**
+     * Event binding methods
+     */
+    onOpen(callback) {
+        this.eventHandlers.onOpen = callback;
+        return this;
+    }
+
+    onClose(callback) {
+        this.eventHandlers.onClose = callback;
+        return this;
+    }
+
+    onTabChange(callback) {
+        this.eventHandlers.onTabChange = callback;
+        return this;
+    }
+
+    onVideoPlay(callback) {
+        this.eventHandlers.onVideoPlay = callback;
+        return this;
+    }
+
+    onAudioPlay(callback) {
+        this.eventHandlers.onAudioPlay = callback;
+        return this;
+    }
+
+    onAudioPause(callback) {
+        this.eventHandlers.onAudioPause = callback;
+        return this;
+    }
+
+    /**
      * Initialize the modal plugin
      */
     init() {
@@ -192,10 +221,8 @@ class ZindeKalModal {
         // Create modal HTML structure
         this.createModalStructure();
         
-        // Create toast notification if enabled
-        if (this.config.toast.enabled) {
-            this.createToastStructure();
-        }
+        // Create toast notification
+        this.createToastStructure();
         
         // Bind event handlers
         this.bindEvents();
@@ -325,7 +352,7 @@ class ZindeKalModal {
                 </nav>
                 ${this.config.modal.showCloseButton ? `
                     <button class="close-button" data-action="close">
-                        <img src="${this.config.assets.basePath}${this.config.assets.icons.close}" alt="Close">
+                        <img src="${ZindeKalModal.ASSETS.basePath}${ZindeKalModal.ASSETS.icons.close}" alt="Close">
                     </button>
                 ` : ''}
             </header>
@@ -387,7 +414,7 @@ class ZindeKalModal {
                 <a href="#" class="category-item ${index === 0 ? 'active' : ''}" data-category="${category.id}">
                     ${category.badge ? `<span class="badge">${category.badge}</span>` : ''}
                     <div class="category-icon ${category.iconClass || ''}">
-                        <img src="${this.config.assets.basePath}${category.icon}" alt="${category.title}">
+                        <img src="${ZindeKalModal.ASSETS.basePath}${category.icon}" alt="${category.title}">
                     </div>
                     <div class="category-text">
                         <span class="category-title">${category.title}</span>
@@ -428,7 +455,7 @@ class ZindeKalModal {
                 <figure class="video-thumbnail-container">
                     <img src="${video.thumbnail}" alt="${video.title}" class="video-thumbnail">
                     <button class="play-button" data-action="play-video" data-video-src="${video.src}">
-                        <img src="${this.config.assets.basePath}${this.config.assets.icons.thumbnailPlay}" 
+                        <img src="${ZindeKalModal.ASSETS.basePath}${ZindeKalModal.ASSETS.icons.thumbnailPlay}" 
                              alt="Play" 
                              style="position: absolute; top: 20.25px; left: 20.25px; width: 31.5px; height: 31.5px;">
                     </button>
@@ -490,8 +517,8 @@ class ZindeKalModal {
                     <div class="song-info">
                         <div class="song-number-icon">
                             <span class="song-number">${index + 1}</span>
-                            <img class="play-icon" src="${this.config.assets.basePath}${this.config.assets.icons.playSmall}" alt="Play">
-                            <img class="pause-icon" src="${this.config.assets.basePath}${this.config.assets.icons.pause}" alt="Pause">
+                            <img class="play-icon" src="${ZindeKalModal.ASSETS.basePath}${ZindeKalModal.ASSETS.icons.playSmall}" alt="Play">
+                            <img class="pause-icon" src="${ZindeKalModal.ASSETS.basePath}${ZindeKalModal.ASSETS.icons.pause}" alt="Pause">
                         </div>
                         <div class="song-details">
                             <span class="song-title">${track.title}</span>
@@ -531,13 +558,13 @@ class ZindeKalModal {
                 <div class="player-controls-container">
                     <div class="player-controls">
                         <button class="control-button prev-track" data-action="prev-track">
-                            <img src="${this.config.assets.basePath}${this.config.assets.icons.prev}" alt="Previous">
+                            <img src="${ZindeKalModal.ASSETS.basePath}${ZindeKalModal.ASSETS.icons.prev}" alt="Previous">
                         </button>
                         <button class="control-button play-pause-button" data-action="toggle-play">
-                            <img src="${this.config.assets.basePath}${this.config.assets.icons.play}" alt="Play">
+                            <img src="${ZindeKalModal.ASSETS.basePath}${ZindeKalModal.ASSETS.icons.play}" alt="Play">
                         </button>
                         <button class="control-button next-track" data-action="next-track">
-                            <img src="${this.config.assets.basePath}${this.config.assets.icons.next}" alt="Next">
+                            <img src="${ZindeKalModal.ASSETS.basePath}${ZindeKalModal.ASSETS.icons.next}" alt="Next">
                         </button>
                     </div>
                     <div class="progress-bar-container">
@@ -553,12 +580,12 @@ class ZindeKalModal {
                         </div>
                         <div class="volume-control-container">
                             <button class="control-button volume-button" data-action="toggle-volume">
-                                <img class="volume-button-icon" src="${this.config.assets.basePath}${this.config.assets.icons.unmuted}" alt="Volume">
+                                <img class="volume-button-icon" src="${ZindeKalModal.ASSETS.basePath}${ZindeKalModal.ASSETS.icons.unmuted}" alt="Volume">
                             </button>
                             <div class="volume-popup" style="display: none;">
                                 <div class="volume-content">
                                     <button class="volume-mute-btn" data-action="toggle-audio-mute">
-                                        <img src="${this.config.assets.basePath}${this.config.assets.icons.unmuted}" alt="Mute">
+                                        <img src="${ZindeKalModal.ASSETS.basePath}${ZindeKalModal.ASSETS.icons.unmuted}" alt="Mute">
                                     </button>
                                     <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="1">
                                     <span class="volume-percentage">100%</span>
@@ -581,11 +608,11 @@ class ZindeKalModal {
         
         this.toastElement.innerHTML = `
             <div class="alert-content">
-                <img src="${this.config.toast.icon}" alt="Alert Icon" class="alert-icon">
-                <p class="alert-text">${this.config.toast.message}</p>
+                <img src="images/kanka.png" alt="Alert Icon" class="alert-icon">
+                <p class="alert-text"></p>
             </div>
             <button class="close-button" data-action="close-toast">
-                <img src="${this.config.assets.basePath}${this.config.assets.icons.closeActive}" alt="Close">
+                <img src="${ZindeKalModal.ASSETS.basePath}${ZindeKalModal.ASSETS.icons.closeActive}" alt="Close">
             </button>
         `;
         
@@ -781,8 +808,8 @@ class ZindeKalModal {
         }
 
         // Call onTabChange callback
-        if (this.config.events.onTabChange) {
-            this.config.events.onTabChange(tabName, oldTab, this);
+        if (this.eventHandlers.onTabChange) {
+            this.eventHandlers.onTabChange(tabName, oldTab, this);
         }
         
         return this;
@@ -1013,8 +1040,8 @@ class ZindeKalModal {
                 // Silently handle auto-play failures
             });
             
-            if (this.config.events.onVideoPlay) {
-                this.config.events.onVideoPlay(videoSrc, this);
+            if (this.eventHandlers.onVideoPlay) {
+                this.eventHandlers.onVideoPlay(videoSrc, this);
             }
         });
 
@@ -1176,14 +1203,14 @@ class ZindeKalModal {
                 // Bind audio events for callbacks
                 if (this.audioPlayer.audio) {
                     this.audioPlayer.audio.addEventListener('play', () => {
-                        if (this.config.events.onAudioPlay) {
-                            this.config.events.onAudioPlay(this.config.music.tracks[this.config.music.currentTrack], this);
+                        if (this.eventHandlers.onAudioPlay) {
+                            this.eventHandlers.onAudioPlay(this.config.music.tracks[this.config.music.currentTrack], this);
                         }
                     });
 
                     this.audioPlayer.audio.addEventListener('pause', () => {
-                        if (this.config.events.onAudioPause) {
-                            this.config.events.onAudioPause(this.config.music.tracks[this.config.music.currentTrack], this);
+                        if (this.eventHandlers.onAudioPause) {
+                            this.eventHandlers.onAudioPause(this.config.music.tracks[this.config.music.currentTrack], this);
                         }
                     });
                 }
@@ -1398,8 +1425,8 @@ class ZindeKalModal {
 
         // Update both popup mute button and main volume button icons
         const iconSrc = this.audioPlayer.isMuted 
-            ? this.config.assets.basePath + this.config.assets.icons.muted
-            : this.config.assets.basePath + this.config.assets.icons.unmuted;
+            ? ZindeKalModal.ASSETS.basePath + ZindeKalModal.ASSETS.icons.muted
+            : ZindeKalModal.ASSETS.basePath + ZindeKalModal.ASSETS.icons.unmuted;
         const altText = this.audioPlayer.isMuted ? 'Unmute' : 'Mute';
 
         if (volumeMuteBtn) {
@@ -1443,7 +1470,7 @@ class ZindeKalModal {
                 
                 try {
                     new rive.Rive({
-                        src: `${this.config.assets.basePath}playing.riv`,
+                        src: `${ZindeKalModal.ASSETS.basePath}playing.riv`,
                         canvas: canvas,
                         autoplay: true,
                         stateMachines: "State Machine",
@@ -1481,7 +1508,7 @@ class ZindeKalModal {
                 
                 try {
                     new rive.Rive({
-                        src: `${this.config.assets.basePath}playing.riv`,
+                        src: `${ZindeKalModal.ASSETS.basePath}playing.riv`,
                         canvas: canvas,
                         autoplay: true,
                         stateMachines: "State Machine",
@@ -1506,26 +1533,38 @@ class ZindeKalModal {
     /**
      * Show toast notification
      */
-    showToast(message = null) {
+    showToast(message, options = {}) {
         if (!this.toastElement) {
             return this;
         }
 
-        // Update message if provided
-        if (message) {
-            const alertText = this.toastElement.querySelector('.alert-text');
-            if (alertText) {
-                alertText.textContent = message;
-            }
+        // Default options
+        const defaultOptions = {
+            autoHideDelay: 5000,
+            icon: 'images/kanka.png'
+        };
+        
+        const finalOptions = { ...defaultOptions, ...options };
+
+        // Update message
+        const alertText = this.toastElement.querySelector('.alert-text');
+        if (alertText && message) {
+            alertText.textContent = message;
+        }
+
+        // Update icon if provided
+        const alertIcon = this.toastElement.querySelector('.alert-icon');
+        if (alertIcon && finalOptions.icon) {
+            alertIcon.src = finalOptions.icon;
         }
 
         this.toastElement.classList.add('show');
 
         // Auto-hide after configured delay
-        if (this.config.toast.autoHideDelay > 0) {
+        if (finalOptions.autoHideDelay > 0) {
             setTimeout(() => {
                 this.hideToast();
-            }, this.config.toast.autoHideDelay);
+            }, finalOptions.autoHideDelay);
         }
 
         return this;
@@ -1630,8 +1669,8 @@ class ZindeKalModal {
         }
 
         // Call onOpen callback
-        if (this.config.events.onOpen) {
-            this.config.events.onOpen(this);
+        if (this.eventHandlers.onOpen) {
+            this.eventHandlers.onOpen(this);
         }
 
         return this;
@@ -1656,8 +1695,8 @@ class ZindeKalModal {
         this.cleanupInlineVideoPlayers();
 
         // Call onClose callback
-        if (this.config.events.onClose) {
-            this.config.events.onClose(this);
+        if (this.eventHandlers.onClose) {
+            this.eventHandlers.onClose(this);
         }
 
         return this;
