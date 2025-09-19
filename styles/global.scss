@@ -261,6 +261,7 @@ body {
 
 .button-container {
     display: flex;
+    flex-direction: column;
     gap: 20px;
     justify-content: center;
     margin: 50px auto;
