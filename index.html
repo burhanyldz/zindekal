@@ -260,12 +260,7 @@
           })
           .onAudioPause((track, modal) => {
             console.log('Audio paused:', track);
-          });
-                
-        // Bind demo buttons
-        document.getElementById('openModalBtn').addEventListener('click', () => {
-          zindeKalModal.open();
-        });
+          });        
         
         document.getElementById('showToastBtn').addEventListener('click', () => {
           zindeKalModal.showToast('MEBİ\'de 2 saattir çalışıyorsunuz. Kısa bir mola vermek ister misiniz? Hadi, şimdi küçük bir egzersiz yapma zamanı!', {
@@ -321,63 +316,5 @@
     console.log('Example usage: testAPI.openModal(), testAPI.showToast("Hello!")');
   </script>
 
-  <style>
-    /* Additional demo styles */
-    .button-container {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      padding: 20px;
-      flex-wrap: wrap;
-    }
-    
-    .zinde-kal-button, .notification-button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background-color 0.3s;
-    }
-    
-    .zinde-kal-button:hover, .notification-button:hover {
-      background: #0056b3;
-    }
-    
-    #eventLog div {
-      font-family: monospace;
-      font-size: 12px;
-      padding: 2px 0;
-      border-bottom: 1px solid #eee;
-    }
-    
-    #configDisplay {
-      font-size: 12px;
-      font-family: monospace;
-      max-height: 300px;
-      overflow: auto;
-    }
-    
-    #configDisplay {
-      font-size: 12px;
-      font-family: monospace;
-      max-height: 300px;
-      overflow: auto;
-    }
-    
-    /* Demo-specific styles only */
-    @media (max-width: 768px) {
-      .button-container {
-        flex-direction: column;
-        align-items: center;
-      }
-      
-      #configDisplay {
-        font-size: 10px;
-      }
-    }
-  </style>
 </body>
 </html>
