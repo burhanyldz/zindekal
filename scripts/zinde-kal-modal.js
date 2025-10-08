@@ -15,6 +15,8 @@ class ZindeKalModal {
         this.audioPlayer = null;
         this.modalElement = null;
         this.toastElement = null;
+        // Holds the auto-hide timer id for the toast so we can clear it when needed
+        this.toastAutoHideTimer = null;
         this.boundEventHandlers = new Map();
         
         // Event handlers (not in config anymore)
@@ -685,6 +687,12 @@ class ZindeKalModal {
         `;
         
         this.config.container.appendChild(this.toastElement);
+        // Make it obvious the toast is clickable
+        try {
+            this.toastElement.style.cursor = 'pointer';
+        } catch (e) {
+            // ignore styles failures in restricted environments
+        }
     }
 
     /**
@@ -744,9 +752,21 @@ class ZindeKalModal {
         // Toast close button
         if (this.toastElement) {
             this.addEventHandler(this.toastElement, 'click', (e) => {
+                // If the close button was clicked, just hide the toast
                 if (e.target.closest('[data-action="close-toast"]')) {
                     this.hideToast();
+                    return;
                 }
+
+                // Any other click on the toast should open the modal
+                // and hide the toast to avoid duplicate UI
+                try {
+                    this.open();
+                } catch (err) {
+                    // Fail silently if open() isn't available for some reason
+                }
+
+                this.hideToast();
             });
         }
     }
@@ -1640,10 +1660,17 @@ class ZindeKalModal {
 
         this.toastElement.classList.add('show');
 
+        // Clear any existing auto-hide timer so previous toasts don't close later toasts
+        if (this.toastAutoHideTimer) {
+            clearTimeout(this.toastAutoHideTimer);
+            this.toastAutoHideTimer = null;
+        }
+
         // Auto-hide after configured delay
         if (finalOptions.autoHideDelay > 0) {
-            setTimeout(() => {
+            this.toastAutoHideTimer = setTimeout(() => {
                 this.hideToast();
+                this.toastAutoHideTimer = null;
             }, finalOptions.autoHideDelay);
         }
 
@@ -1656,6 +1683,12 @@ class ZindeKalModal {
     hideToast() {
         if (this.toastElement) {
             this.toastElement.classList.remove('show');
+        }
+
+        // Clear any pending auto-hide timer when hiding proactively
+        if (this.toastAutoHideTimer) {
+            clearTimeout(this.toastAutoHideTimer);
+            this.toastAutoHideTimer = null;
         }
 
         return this;
