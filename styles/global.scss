@@ -458,6 +458,7 @@ body {
     flex: 1;
     overflow-y: visible;
     align-items: start;
+    align-content: start;
 
     .video-card {
         background-color: var(--color-background-card);
@@ -531,6 +532,16 @@ body {
                 font-size: 12px;
                 font-weight: 500;
                 z-index: 2;
+            }
+
+            /* Inline video player positioning */
+            .inline-video-player {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 5;
             }
         }
 
