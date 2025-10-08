@@ -83,7 +83,8 @@ class ZindeKalModal {
                 playSmall: "play-sm.svg",
                 thumbnailPlay: "thumbnail-play.svg",
                 muted: "muted.svg",
-                unmuted: "unmuted.svg"
+                unmuted: "unmuted.svg",
+                info: "info.svg"
             }
         };
     }
@@ -528,10 +529,11 @@ class ZindeKalModal {
                     </button>
                 </figure>
                 <div class="video-info">
-                    <div class="video-title-bar">
-                        <h3>${video.title}</h3>
+                    <h3 class="video-title">${video.title}</h3>
+                    <div class="info-icon">
+                        <img src="${ZindeKalModal.ASSETS.basePath}${ZindeKalModal.ASSETS.icons.info}" alt="Info Icon" />
+                        <div class="tooltip">${video.description}</div>
                     </div>
-                    <p>${video.description}</p>
                 </div>
             </article>
         `).join('');
