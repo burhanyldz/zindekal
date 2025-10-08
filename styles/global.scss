@@ -506,6 +506,21 @@ body {
                     transform: scale(1.1);
                 }
             }
+
+            /* Video Duration Badge */
+            .video-duration-badge {
+                position: absolute;
+                bottom: 8px;
+                right: 8px;
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: 500;
+                z-index: 2;
+            }
+
         }
 
         .video-info {

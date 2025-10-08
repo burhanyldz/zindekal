@@ -520,6 +520,7 @@ class ZindeKalModal {
             <article class="video-card" data-video-id="${video.id}">
                 <figure class="video-thumbnail-container">
                     <img src="${video.thumbnail}" alt="${video.title}" class="video-thumbnail">
+                    <div class="video-duration-badge">${video.duration}</div>
                     <button class="play-button" data-action="play-video" data-video-src="${video.src}">
                         <img src="${ZindeKalModal.ASSETS.basePath}${ZindeKalModal.ASSETS.icons.thumbnailPlay}" 
                              alt="Play" 
@@ -529,7 +530,6 @@ class ZindeKalModal {
                 <div class="video-info">
                     <div class="video-title-bar">
                         <h3>${video.title}</h3>
-                        <span>${video.duration}</span>
                     </div>
                     <p>${video.description}</p>
                 </div>
