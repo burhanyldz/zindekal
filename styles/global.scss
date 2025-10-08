@@ -457,6 +457,7 @@ body {
     justify-content: center;
     flex: 1;
     overflow-y: visible;
+    align-items: start;
 
     .video-card {
         background-color: var(--color-background-card);

@@ -416,6 +416,7 @@ BUTTON COMPONENTS
   justify-content: center;
   flex: 1;
   overflow-y: visible;
+  align-items: start;
   /* Empty category message */
 }
 .video-grid .video-card {
