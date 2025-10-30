@@ -527,7 +527,7 @@ class ZindeKalModal {
                     <button class="play-button" data-action="play-video" data-video-src="${video.src}">
                         <img src="${ZindeKalModal.ASSETS.basePath}${ZindeKalModal.ASSETS.icons.thumbnailPlay}" 
                              alt="Play" 
-                             style="position: absolute; top: 20.25px; left: 20.25px; width: 31.5px; height: 31.5px;">
+                             class="play-icon" />
                     </button>
                 </figure>
                 <div class="video-info">
