@@ -120,7 +120,93 @@
 }
 
 @container (max-width: 400px) {
-  .plyr__volume input[type=range] {
+  /* Only hide volume slider in inline mode, not fullscreen */
+  /* When data-fullscreen is present on the player, don't hide the volume slider */
+  .plyr__volume input[type=range]:not([data-fullscreen]) {
     display: none !important;
   }
+}
+
+/* Override container query in fullscreen - use higher specificity */
+.plyr--fullscreen.plyr .plyr__volume input[type=range],
+.plyr--fullscreen-active .plyr__volume input[type=range],
+.plyr.plyr--fullscreen .plyr__volume input[type=range] {
+  display: inline-block !important;
+  width: 60px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Ensure the volume control wrapper is also visible */
+.plyr--fullscreen.plyr .plyr__volume,
+.plyr--fullscreen-active .plyr__volume,
+.plyr.plyr--fullscreen .plyr__volume {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  visibility: visible !important;
+}
+
+/* Make sure the button is visible too */
+.plyr--fullscreen.plyr [data-plyr="mute"],
+.plyr.plyr--fullscreen [data-plyr="mute"] {
+  display: inline-block !important;
+}
+
+/* Ensure mute/unmute buttons are visible in fullscreen */
+.plyr--fullscreen .plyr__controls button[aria-label*="Ses"],
+.plyr--fullscreen .plyr__controls button[data-plyr="mute"],
+.plyr--fullscreen .plyr__control[aria-label*="mute"] {
+  display: inline-block !important;
+}
+
+/* Critical: Force volume slider to be visible in fullscreen */
+.plyr--fullscreen .plyr__controls .plyr__volume input[type="range"],
+.plyr.plyr--fullscreen .plyr__controls .plyr__volume input[type="range"],
+html.plyr--fullscreen-active .plyr__volume input[type="range"],
+.plyr:-webkit-full-screen .plyr__volume input[type="range"],
+.plyr:-moz-full-screen .plyr__volume input[type="range"],
+.plyr:fullscreen .plyr__volume input[type="range"] {
+  display: inline-block !important;
+  width: 60px !important;
+  min-width: 60px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+}
+
+/* Force the volume container to display */
+.plyr--fullscreen .plyr__controls .plyr__volume,
+.plyr.plyr--fullscreen .plyr__controls .plyr__volume,
+html.plyr--fullscreen-active .plyr__volume,
+.plyr:-webkit-full-screen .plyr__volume,
+.plyr:-moz-full-screen .plyr__volume,
+.plyr:fullscreen .plyr__volume {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Volume control bar styling for fullscreen */
+.plyr--fullscreen .plyr__volume input[type="range"] {
+  cursor: pointer;
+  appearance: slider-horizontal;
+  -webkit-appearance: slider-horizontal;
+}
+
+.plyr--fullscreen .plyr__volume input[type="range"]::-webkit-slider-thumb {
+  width: 10px;
+  height: 10px;
+  background: white;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.plyr--fullscreen .plyr__volume input[type="range"]::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  background: white;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
 }

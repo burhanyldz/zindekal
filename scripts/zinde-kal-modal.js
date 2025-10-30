@@ -1143,6 +1143,40 @@ class ZindeKalModal {
         // Add loading state to help with visibility
         playerContainer.classList.add('plyr-loading');
         
+        // Handle fullscreen changes to show/hide volume slider
+        player.on('enterfullscreen', () => {
+            // Add data-fullscreen attribute to bypass container query restriction
+            // The CSS container query checks :not([data-fullscreen]) so this allows
+            // the volume slider to display even in containers narrower than 400px
+            const volumeInput = playerContainer.querySelector('.plyr__volume input[type="range"]');
+            if (volumeInput) {
+                volumeInput.setAttribute('data-fullscreen', 'true');
+                volumeInput.style.display = 'inline-block';
+                volumeInput.style.width = '60px';
+            }
+            
+            const volumeContainer = playerContainer.querySelector('.plyr__volume');
+            if (volumeContainer) {
+                volumeContainer.style.display = 'inline-flex';
+            }
+        });
+        
+        player.on('exitfullscreen', () => {
+            // Remove data-fullscreen attribute so container query hides it again
+            // in narrow containers, and remove inline styles to let CSS take over
+            const volumeInput = playerContainer.querySelector('.plyr__volume input[type="range"]');
+            if (volumeInput) {
+                volumeInput.removeAttribute('data-fullscreen');
+                volumeInput.style.display = '';
+                volumeInput.style.width = '';
+            }
+            
+            const volumeContainer = playerContainer.querySelector('.plyr__volume');
+            if (volumeContainer) {
+                volumeContainer.style.display = '';
+            }
+        });
+        
         player.on('ready', () => {
             // Remove loading state and ensure visibility
             playerContainer.classList.remove('plyr-loading');
@@ -1217,6 +1251,13 @@ class ZindeKalModal {
                 'play-large', 'play', 'progress', 'current-time', 'duration', 
                 'mute', 'volume', 'fullscreen'
             ],
+            fullscreen: {
+                enabled: true,
+                fallback: true,
+                iosNative: true
+            },
+            // Keyboard control
+            keyboard: { focused: true, global: false },
             i18n: {
                 restart: "Tekrar başlat",
                 rewind: "{seektime}s geri",

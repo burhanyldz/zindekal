@@ -1250,4 +1250,50 @@ BUTTON COMPONENTS
   color: var(--color-text-medium);
   min-width: 35px;
   text-align: right;
+}
+
+/* ================================
+   TAP/CLICK HIGHLIGHT (ACCESSIBLE)
+   ================================
+   Remove the blue/tap highlight shown on touch/click while preserving
+   keyboard focus visibility using :focus-visible for accessibility.
+*/
+/* Disable the tap highlight on WebKit-based mobile browsers (iOS/Android)
+   and on desktop WebKit builds. */
+html, body, * {
+  -webkit-tap-highlight-color: transparent; /* removes blue flash on tap/click */
+  -webkit-touch-callout: none; /* prevent callout on long-press (iOS) */
+}
+
+/* Ensure common interactive elements also get the same treatment */
+a, button, input, textarea, label, [role=button] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Remove Firefox inner focus border on buttons */
+button::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+
+/* Prevent selection flash when clicking/dragging */
+::-moz-selection {
+  background: transparent;
+  color: inherit;
+}
+::selection {
+  background: transparent;
+  color: inherit;
+}
+
+/* Keep keyboard focus visible for accessibility.
+   We remove the default outline for mouse/touch interactions but
+   provide a clear visible focus for keyboard users via :focus-visible. */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
 }/*# sourceMappingURL=global.css.map */
