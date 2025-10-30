@@ -59,6 +59,7 @@
 .inline-video-player .plyr__controls {
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
   border-radius: 0 0 12px 12px;
+  padding-top: 0px !important;
 }
 
 .inline-video-player .plyr__control--overlaid {

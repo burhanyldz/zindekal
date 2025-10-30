@@ -18,6 +18,8 @@ class ZindeKalModal {
         // Holds the auto-hide timer id for the toast so we can clear it when needed
         this.toastAutoHideTimer = null;
         this.boundEventHandlers = new Map();
+        // Track the currently active video player to prevent conflicts
+        this.activeVideoPlayer = null;
         
         // Event handlers (not in config anymore)
         this.eventHandlers = {
@@ -521,7 +523,7 @@ class ZindeKalModal {
 
         const videoCards = videos.map(video => `
             <article class="video-card" data-video-id="${video.id}">
-                <figure class="video-thumbnail-container">
+                <figure class="video-thumbnail-container" data-action="play-video" data-video-src="${video.src}">
                     <img src="${video.thumbnail}" alt="${video.title}" class="video-thumbnail">
                     <div class="video-duration-badge">${video.duration}</div>
                     <button class="play-button" data-action="play-video" data-video-src="${video.src}">
@@ -532,10 +534,12 @@ class ZindeKalModal {
                 </figure>
                 <div class="video-info">
                     <h3 class="video-title">${video.title}</h3>
+                    ${video.description && String(video.description).trim() ? `
                     <div class="info-icon">
                         <img src="${ZindeKalModal.ASSETS.basePath}${ZindeKalModal.ASSETS.icons.info}" alt="Info Icon" />
                         <div class="tooltip">${video.description}</div>
                     </div>
+                    ` : ''}
                 </div>
             </article>
         `).join('');
@@ -788,6 +792,12 @@ class ZindeKalModal {
      * Handle all modal click events through delegation
      */
     handleModalClick(e) {
+        // Prevent play-video action from firing on clicks inside an active inline video player
+        // (e.g., Plyr controls, progress bar) to avoid restarting or recreating the player
+        if (e.target.closest('.inline-video-player')) {
+            return;
+        }
+
         const action = e.target.closest('[data-action]')?.dataset.action;
         const tabElement = e.target.closest('[data-tab]');
         const categoryElement = e.target.closest('[data-category]');
@@ -864,6 +874,9 @@ class ZindeKalModal {
             return this;
         }
 
+        // Cleanup active video player when switching tabs
+        this.cleanupActiveVideoPlayer();
+
         // Update current tab
         const oldTab = this.currentTab;
         this.currentTab = tabName;
@@ -900,9 +913,6 @@ class ZindeKalModal {
                 this.selectCategory(firstCategoryId);
             }
         }
-
-        // Ensure to clear initialized video players when switching tabs
-        this.pauseAllOtherVideos();
 
         // Call onTabChange callback
         if (this.eventHandlers.onTabChange) {
@@ -991,21 +1001,23 @@ class ZindeKalModal {
 
     /**
      * Play a video inline within the video card
+     * Centralized state management: only one video can be "active" at a time
      */
     playVideo(videoSrc, videoPoster = '') {
-        // Pause all other playing videos first
-        this.pauseAllOtherVideos();
-        
-        // Find the clicked video element in the current active tab first
+        // Step 1: If THIS video is already the active player, do nothing
+        // (User can't restart a playing/paused video by clicking the thumbnail)
+        if (this.activeVideoPlayer && this.activeVideoPlayer.videoSrc === videoSrc) {
+            return this;
+        }
+
+        // Step 2: Find the video element in the DOM
         const currentActiveTab = this.modalElement.querySelector('.tab-content.active');
-        
         let playButton = null;
+        
         if (currentActiveTab) {
-            // Look for the video in the current active tab first
             playButton = currentActiveTab.querySelector(`[data-video-src="${videoSrc}"]`);
         }
         
-        // If not found in current tab, search globally (fallback)
         if (!playButton) {
             playButton = this.modalElement.querySelector(`[data-video-src="${videoSrc}"]`);
         }
@@ -1015,47 +1027,32 @@ class ZindeKalModal {
         }
 
         const videoCard = playButton.closest('.video-card');
-        const thumbnailContainer = videoCard.querySelector('.video-thumbnail-container');
+        const thumbnailContainer = videoCard?.querySelector('.video-thumbnail-container');
         
         if (!thumbnailContainer) {
             return this;
         }
 
-        // Find video data to get poster/thumbnail
+        // Step 3: Cleanup the previous active player (if any)
+        this.cleanupActiveVideoPlayer();
+
+        // Step 4: Find video data to get poster/thumbnail
         let videoData = null;
         const allVideos = [...(this.config.exercise.videos || []), ...(this.config.relaxing.videos || [])];
-        
-        // Match by both src AND the video card's data-video-id for precise identification
         const videoCardId = videoCard.getAttribute('data-video-id');
-        videoData = allVideos.find(video => video.src === videoSrc && video.id === videoCardId);
         
-        // Fallback to src-only match if needed
-        if (!videoData) {
-            videoData = allVideos.find(video => video.src === videoSrc);
-        }
+        videoData = allVideos.find(video => video.src === videoSrc && video.id === videoCardId) ||
+                   allVideos.find(video => video.src === videoSrc);
         
         if (videoData && !videoPoster) {
             videoPoster = videoData.thumbnail || '';
         }
 
-        // Check which tab this video belongs to
-        const parentTab = thumbnailContainer.closest('.tab-content');
-        
-        // Determine expected tab based on video data
-        let expectedTab = 'unknown';
-        if (this.config.exercise.videos?.some(v => v.id === videoCardId)) {
-            expectedTab = 'exercise';
-        } else if (this.config.relaxing.videos?.some(v => v.id === videoCardId)) {
-            expectedTab = 'relaxing';
-        }
-
-        // Create unique ID for this video player
-        const videoId = `inline-video-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        
-        // Store original thumbnail content for potential restoration
+        // Step 5: Store original thumbnail content
         const originalContent = thumbnailContainer.innerHTML;
         
-        // Replace thumbnail container content with video player
+        // Step 6: Replace thumbnail with video player
+        const videoId = `inline-video-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         thumbnailContainer.innerHTML = `
             <div class="inline-video-player" id="${videoId}">
                 <video crossorigin class="inline-video" data-poster="${videoPoster}">
@@ -1064,7 +1061,6 @@ class ZindeKalModal {
             </div>
         `;
 
-        // Initialize inline video player
         const videoElement = thumbnailContainer.querySelector('.inline-video');
         const playerContainer = thumbnailContainer.querySelector('.inline-video-player');
         
@@ -1073,40 +1069,59 @@ class ZindeKalModal {
             return this;
         }
 
-        try {
-            // Check if we're already in the correct tab - if so, don't switch!
-            const parentTab = thumbnailContainer.closest('.tab-content');
+        // Step 7: Check if we need to switch tabs
+        const parentTab = thumbnailContainer.closest('.tab-content');
+        if (parentTab && !parentTab.classList.contains('active')) {
+            const tabId = parentTab.id.replace('-tab', '');
+            this.switchTab(tabId);
             
-            if (parentTab && !parentTab.classList.contains('active')) {
-                // If tab is not active, make it active first
-                const tabId = parentTab.id.replace('-tab', '');
-                
-                this.switchTab(tabId);
-                
-                // Wait a bit for tab switch to complete
-                setTimeout(() => {
-                    this.initializeVideoPlayer(videoElement, playerContainer, originalContent, videoSrc);
-                }, 150);
-                return this;
-            }
-            
-            this.initializeVideoPlayer(videoElement, playerContainer, originalContent, videoSrc);
+            // Wait for tab switch before initializing player
+            setTimeout(() => {
+                this.initializeVideoPlayer(videoElement, playerContainer, originalContent, videoSrc, thumbnailContainer);
+            }, 150);
+            return this;
+        }
+        
+        // Step 8: Initialize the player
+        this.initializeVideoPlayer(videoElement, playerContainer, originalContent, videoSrc, thumbnailContainer);
 
-        } catch (error) {
-            thumbnailContainer.innerHTML = originalContent;
+        return this;
+    }
+
+    /**
+     * Cleanup the currently active video player
+     */
+    cleanupActiveVideoPlayer() {
+        if (!this.activeVideoPlayer) {
+            return this;
         }
 
+        try {
+            const { playerContainer, plyrInstance } = this.activeVideoPlayer;
+            
+            if (plyrInstance) {
+                plyrInstance.pause();
+                plyrInstance.destroy();
+            }
+            
+            if (playerContainer && playerContainer.parentElement) {
+                // Restore original thumbnail
+                if (playerContainer._originalContent) {
+                    playerContainer.parentElement.innerHTML = playerContainer._originalContent;
+                }
+            }
+        } catch (error) {
+            // Silently handle cleanup errors
+        }
+
+        this.activeVideoPlayer = null;
         return this;
     }
 
     /**
      * Initialize video player with proper timing and visibility handling
      */
-    initializeVideoPlayer(videoElement, playerContainer, originalContent, videoSrc) {
-        // Check current tab state
-        const currentActiveTab = this.modalElement.querySelector('.tab-content.active');
-        const parentTab = playerContainer.closest('.tab-content');
-        
+    initializeVideoPlayer(videoElement, playerContainer, originalContent, videoSrc, thumbnailContainer) {
         // Force layout refresh before initializing Plyr
         playerContainer.offsetHeight;
         
@@ -1117,13 +1132,18 @@ class ZindeKalModal {
         playerContainer._plyrInstance = player;
         playerContainer._originalContent = originalContent;
         
+        // Register this as the active video player (centralized state)
+        this.activeVideoPlayer = {
+            videoSrc: videoSrc,
+            playerContainer: playerContainer,
+            plyrInstance: player,
+            thumbnailContainer: thumbnailContainer
+        };
+        
         // Add loading state to help with visibility
         playerContainer.classList.add('plyr-loading');
         
         player.on('ready', () => {
-            // Check tab state when ready
-            const activeTabNow = this.modalElement.querySelector('.tab-content.active');
-            
             // Remove loading state and ensure visibility
             playerContainer.classList.remove('plyr-loading');
             playerContainer.style.visibility = 'visible';
@@ -1142,10 +1162,11 @@ class ZindeKalModal {
             }
         });
 
-        // Add event listener for when video actually starts playing
+        // When video plays, no need to pause others (we already cleaned up activeVideoPlayer)
         player.on('play', () => {
-            // Pause all OTHER videos when this one starts playing
-            this.pauseAllOtherVideos(playerContainer);
+            if (this.eventHandlers.onVideoPlay) {
+                this.eventHandlers.onVideoPlay(videoSrc, this);
+            }
         });
 
         // Add event listener for when video is paused
@@ -1795,6 +1816,9 @@ class ZindeKalModal {
     close() {
         if (!this.isModalOpen) return this;
 
+        // Cleanup active video player
+        this.cleanupActiveVideoPlayer();
+
         this.modalElement.classList.remove('active');
         document.body.style.overflow = 'auto';
         this.isModalOpen = false;
@@ -1804,7 +1828,7 @@ class ZindeKalModal {
             this.audioPlayer.pause();
         }
 
-        // Clean up any inline video players
+        // Clean up any remaining inline video players
         this.cleanupInlineVideoPlayers();
 
         // Call onClose callback
@@ -1819,7 +1843,6 @@ class ZindeKalModal {
      * Clean up all inline video players
      */
     cleanupInlineVideoPlayers() {
- console.log("cleanupInlineVideoPlayers ");
         const inlineVideoPlayers = this.modalElement.querySelectorAll('.inline-video-player');
         inlineVideoPlayers.forEach(playerContainer => {
             if (playerContainer._plyrInstance) {
