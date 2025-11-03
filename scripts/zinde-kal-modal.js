@@ -103,49 +103,66 @@ class ZindeKalModal {
                 title: "Ayak Bileği Egzersizi",
                 icon: "ayak.svg",
                 iconClass: "icon-ayak",
-                videoCount: 2
+            },
+            {
+                id: "wrist",
+                title: "El Bileği Egzersizi",
+                icon: "el_bilegi.svg",
+                iconClass: "icon-bilek",
+            },
+            {
+                id: "neck-sitting",
+                title: "Oturarak Boyun Egzersizi",
+                icon: "oturarak_boyun.svg",
+                iconClass: "icon-sitting-boyun",
             },
             {
                 id: "shoulder-standing",
                 title: "Ayakta Omuz Egzersizi",
                 icon: "ayakta_omuz.svg",
                 iconClass: "icon-omuz",
-                videoCount: 6
             },
             {
                 id: "shoulder-sitting",
                 title: "Oturarak Omuz Egzersizi",
                 icon: "oturarak_omuz.svg",
                 iconClass: "icon-oturarak-omuz",
-                videoCount: 4
             },
             {
                 id: "walking",
                 title: "Yürüyüş Egzersizi",
                 icon: "yuruyus.svg",
                 iconClass: "icon-yuruyus",
-                videoCount: 3,
             },
             {
                 id: "eye",
                 title: "Göz Egzersizi",
                 icon: "goz.svg",
                 iconClass: "icon-goz",
-                videoCount: 3,
             },
             {
                 id: "back-standing",
                 title: "Ayakta Bel Egzersizi",
                 icon: "ayakta_bel.svg",
                 iconClass: "icon-ayakta-bel",
-                videoCount: 1,
+            },
+            {
+                id: "back-sitting",
+                title: "Oturarak Bel ve Sırt Egzersizi",
+                icon: "oturarak_bel_sirt.svg",
+                iconClass: "icon-oturarak-bel-sirt",
+            },
+            {
+                id: "leg-standing",
+                title: "Ayakta Bacak Egzersizi",
+                icon: "ayakta_bacak.svg",
+                iconClass: "icon-ayakta-bacak",
             },
             {
                 id: "breathing",
                 title: "Nefes Egzersizi",
                 icon: "nefes.svg",
                 iconClass: "icon-nefes",
-                videoCount: 1,
             }
         ];
     }
