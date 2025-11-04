@@ -29,48 +29,18 @@
     --color-border-light: #dfe6f5;
     --border-active: 2px solid #92a8de;
     --font-family-main: 'Rubik', sans-serif;
-    
+
     /* Mobile viewport variables for dynamic height calculation */
-    --vh: 1vh; /* Will be set by JavaScript for mobile browsers */
-    --modal-top-offset: 0px; /* Can be set by JavaScript to avoid address bar */
-    --modal-bottom-offset: 0px; /* Can be set by JavaScript to avoid browser UI */
+    --vh: 1vh;
+    /* Will be set by JavaScript for mobile browsers */
+    --modal-top-offset: 0px;
+    /* Can be set by JavaScript to avoid address bar */
+    --modal-bottom-offset: 0px;
+    /* Can be set by JavaScript to avoid browser UI */
 }
 
-/* Base Styles */
 
-/* Base Styles */
-body {
-    margin: 0;
-    padding: 20px;
-    font-family: var(--font-family-main);
-    background-color: #f0f2f5;
-    color: var(--color-text-dark);
-}
 
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-}
-
-/* ================================
-   LAYOUT COMPONENTS
-   ================================ */
-
-/* Widget Container */
-.widget-container {
-    background-color: var(--color-background-widget);
-    border: 1px solid var(--color-border-dark);
-    border-radius: 18px;
-    box-shadow: 0px 6px 20px 0px rgba(0, 51, 179, 0.2);
-    padding: 24px;
-    max-width: 1512px;
-    margin: 20px auto;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    overflow: hidden;
-}
 
 /* ================================
    MODAL SYSTEM
@@ -78,6 +48,7 @@ body {
 
 /* Modal Styles */
 .modal-overlay {
+    font-family: var(--font-family-main);
     position: fixed;
     top: 0;
     left: 0;
@@ -85,7 +56,8 @@ body {
     height: 100%;
     /* Mobile-safe viewport handling */
     height: 100vh;
-    height: 100dvh; /* Dynamic viewport height for modern browsers */
+    height: 100dvh;
+    /* Dynamic viewport height for modern browsers */
     background-color: rgba(0, 0, 0, 0.5);
     display: none;
     justify-content: center;
@@ -123,9 +95,17 @@ body {
         flex-direction: column;
         user-select: none;
         /* Mobile browser specific fixes */
-        -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
-        overscroll-behavior: contain; /* Prevent bounce scrolling from affecting parent */
-        touch-action: manipulation; /* Disable double-tap zoom */
+        -webkit-overflow-scrolling: touch;
+        /* iOS momentum scrolling */
+        overscroll-behavior: contain;
+        /* Prevent bounce scrolling from affecting parent */
+        touch-action: manipulation;
+        /* Disable double-tap zoom */
+        -webkit-tap-highlight-color: transparent;
+        /* removes blue flash on tap/click */
+        -webkit-touch-callout: none;
+        /* prevent callout on long-press (iOS) */
+
 
         /* ================================
         NAVIGATION & TABS
@@ -197,7 +177,8 @@ body {
             }
 
             /* For exercise and relaxing tabs - ensure scrollable content */
-            &#exercise-tab, &#relaxing-tab {
+            &#exercise-tab,
+            &#relaxing-tab {
                 &.active {
                     display: flex;
                     flex-direction: column;
@@ -206,9 +187,35 @@ body {
             }
         }
     }
+
+
+
+    /* Remove Firefox inner focus border on buttons */
+    button::-moz-focus-inner {
+        border: 0;
+        padding: 0;
+    }
+
+    /* Prevent selection flash when clicking/dragging */
+    ::selection {
+        background: transparent;
+        color: inherit;
+    }
+
+    /* Keep keyboard focus visible for accessibility.
+   We remove the default outline for mouse/touch interactions but
+   provide a clear visible focus for keyboard users via :focus-visible. */
+    :focus {
+        outline: none;
+    }
+
+    :focus-visible {
+        outline: 3px solid var(--color-primary);
+        outline-offset: 2px;
+    }
 }
 
-   /* ================================
+/* ================================
    BUTTON COMPONENTS
    ================================ */
 
@@ -261,7 +268,7 @@ body {
     &:hover {
         opacity: 0.8;
         transform: scale(1.1);
-        
+
     }
 }
 
@@ -351,21 +358,22 @@ body {
 /* Scrollbar Styling - Global */
 .category-nav-scroll,
 .video-grid {
+
     // Custom scrollbar styling
     &::-webkit-scrollbar {
         width: 6px;
         height: 6px;
     }
-    
+
     &::-webkit-scrollbar-track {
         background: var(--color-background-disabled);
         border-radius: 3px;
     }
-    
+
     &::-webkit-scrollbar-thumb {
         background: var(--color-border-dark);
         border-radius: 3px;
-        
+
         &:hover {
             background: var(--color-text-light);
         }
@@ -485,7 +493,8 @@ body {
         .video-thumbnail-container {
             position: relative;
             width: 100%;
-            padding-top: 56.25%; /* 16:9 aspect ratio */
+            padding-top: 56.25%;
+            /* 16:9 aspect ratio */
             overflow: hidden;
             margin: 0;
 
@@ -524,7 +533,7 @@ body {
                     filter: none;
                 }
 
-                .play-icon{
+                .play-icon {
                     position: absolute;
                     top: 50%;
                     left: 50%;
@@ -569,9 +578,6 @@ body {
                 color: var(--color-text-medium);
                 margin: 0;
                 padding-right: 24px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
             }
 
             .info-icon {
@@ -735,6 +741,7 @@ body {
 
             &:hover {
                 cursor: pointer;
+
                 .playlist-item-content {
                     background-color: var(--color-playlist-item-background-active);
                 }
@@ -743,10 +750,13 @@ body {
                     .song-number {
                         display: none !important;
                     }
+
                     .play-icon {
                         display: block !important;
                     }
-                    .pause-icon, #playing-riv {
+
+                    .pause-icon,
+                    #playing-riv {
                         display: none !important;
                     }
                 }
@@ -765,24 +775,31 @@ body {
                     span {
                         color: var(--color-primary) !important;
                     }
+
                     .song-number-icon {
-                        .song-number, .pause-icon, #playing-riv {
+
+                        .song-number,
+                        .pause-icon,
+                        #playing-riv {
                             display: none !important;
                         }
+
                         .play-icon {
                             display: block !important;
                         }
                     }
                 }
 
-                &.playing{
+                &.playing {
                     .song-info {
                         .song-number-icon {
-                            .play-icon, .pause-icon {
+
+                            .play-icon,
+                            .pause-icon {
                                 display: none !important;
                             }
 
-                            #playing-riv{
+                            #playing-riv {
                                 display: block !important;
                             }
                         }
@@ -791,16 +808,19 @@ body {
                     &:hover {
                         .song-info {
                             .song-number-icon {
-                                .play-icon, #playing-riv {
+
+                                .play-icon,
+                                #playing-riv {
                                     display: none !important;
                                 }
+
                                 .pause-icon {
                                     display: block !important;
                                 }
                             }
                         }
                     }
-                }                
+                }
             }
         }
     }
@@ -899,36 +919,36 @@ body {
                     border-radius: 50%;
                 }
 
-                                .progress-time-tooltip {
-                                    position: absolute;
-                                    bottom: 20px;
-                                    transform: translateX(-50%);
-                                    background-color: rgba(0, 0, 0, 0.8);
-                                    color: white;
-                                    padding: 6px 10px;
-                                    border-radius: 4px;
-                                    font-size: 12px;
-                                    font-weight: 500;
-                                    white-space: nowrap;
-                                    z-index: 1000;
-                                    pointer-events: none;
-                                    opacity: 0;
-                                    transition: opacity 0.2s ease;
+                .progress-time-tooltip {
+                    position: absolute;
+                    bottom: 20px;
+                    transform: translateX(-50%);
+                    background-color: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    padding: 6px 10px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    font-weight: 500;
+                    white-space: nowrap;
+                    z-index: 1000;
+                    pointer-events: none;
+                    opacity: 0;
+                    transition: opacity 0.2s ease;
 
-                                    &.visible {
-                                        opacity: 1;
-                                    }
+                    &.visible {
+                        opacity: 1;
+                    }
 
-                                    &::after {
-                                        content: '';
-                                        position: absolute;
-                                        top: 100%;
-                                        left: 50%;
-                                        transform: translateX(-50%);
-                                        border: 5px solid transparent;
-                                        border-top-color: rgba(0, 0, 0, 0.8);
-                                    }
-                                }
+                    &::after {
+                        content: '';
+                        position: absolute;
+                        top: 100%;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        border: 5px solid transparent;
+                        border-top-color: rgba(0, 0, 0, 0.8);
+                    }
+                }
             }
 
             .time-display {
@@ -951,7 +971,7 @@ body {
         align-items: center;
         justify-content: center;
 
-        &.play-pause-button{
+        &.play-pause-button {
             min-width: 26px;
         }
     }
@@ -996,7 +1016,7 @@ body {
         color: var(--color-primary);
         font-weight: 500;
     }
-    
+
     .song-artist {
         color: var(--color-primary-light);
     }
@@ -1034,7 +1054,7 @@ body {
         /* Reset any positioning */
         top: 0;
         left: 0;
-        
+
         .modal-container {
             max-width: 100%;
             width: 100%;
@@ -1054,12 +1074,12 @@ body {
             padding-right: env(safe-area-inset-right);
             /* Remove any margins that cause gaps */
             margin: 0;
-            
+
             // Widget header mobile padding
             .widget-header {
                 padding: 5px 10px 0px 10px;
 
-                .tab-item{
+                .tab-item {
                     font-size: 14px;
                     line-height: 22px;
                     padding: 0 !important;
@@ -1077,12 +1097,12 @@ body {
                 /* Enable momentum scrolling and prevent overscroll */
                 -webkit-overflow-scrolling: touch;
                 overscroll-behavior: contain;
-                
+
                 &.active {
                     display: flex;
                     flex-direction: column;
                 }
-                
+
                 &#music-tab {
                     .music-content {
                         padding: 10px !important;
@@ -1092,7 +1112,8 @@ body {
                 }
 
                 /* Ensure video tabs have proper scrolling on mobile */
-                &#exercise-tab, &#relaxing-tab {
+                &#exercise-tab,
+                &#relaxing-tab {
                     &.active {
                         display: flex;
                         flex-direction: column;
@@ -1100,13 +1121,13 @@ body {
                     }
                 }
 
-                .category-nav-scroll{
+                .category-nav-scroll {
 
                     padding: 10px 0 10px 0 !important;
                     margin-bottom: 0 !important;
 
-                    .category-nav{
-                        .category-item{
+                    .category-nav {
+                        .category-item {
                             padding: 8px 12px !important;
 
                             .category-title {
@@ -1130,13 +1151,13 @@ body {
         padding: 0;
         gap: 0;
         position: relative;
-        
+
         .player-song-details {
             padding: 16px 10px;
             text-align: center;
             flex: 1;
 
-            .player-song-title-container{
+            .player-song-title-container {
 
                 gap: 4px;
 
@@ -1146,7 +1167,7 @@ body {
                 }
             }
 
-            span{
+            span {
                 display: block;
                 white-space: nowrap;
                 overflow: hidden;
@@ -1159,9 +1180,10 @@ body {
             flex-grow: unset;
             padding: 16px 10px;
 
-            .player-controls{
+            .player-controls {
 
-                .prev-track, .next-track {
+                .prev-track,
+                .next-track {
                     display: none;
                 }
             }
@@ -1174,21 +1196,21 @@ body {
                 top: -2px;
                 left: 0;
                 right: 0;
-                
+
                 .progress-bar {
                     height: 3px;
                     border-radius: 0;
-                    
+
                     .progress-bar-filled {
                         border-radius: 0;
                     }
-                    
+
                 }
-                
+
                 .time-display {
                     display: none;
                 }
-                
+
                 .volume-control-container {
                     display: none;
                 }
@@ -1210,7 +1232,7 @@ body {
     .song-title {
         font-size: 13px;
     }
-    
+
     .song-artist {
         font-size: 11px;
     }
@@ -1234,7 +1256,7 @@ body {
         padding-bottom: 0;
         padding-left: 0;
         padding-right: 0;
-        
+
         .modal-container {
             max-width: 100%;
             width: 100%;
@@ -1253,7 +1275,7 @@ body {
         }
     }
 
-        // Mobile music player redesign
+    // Mobile music player redesign
     .music-player {
         flex-direction: row;
         height: auto;
@@ -1318,7 +1340,7 @@ body {
             }
         }
     }
-  
+
 }
 
 
@@ -1333,7 +1355,7 @@ body {
         padding-bottom: 0;
         padding-left: 0;
         padding-right: 0;
-        
+
         .modal-container {
             max-width: 100%;
             width: 100%;
@@ -1391,7 +1413,7 @@ body {
     padding: 16px;
     z-index: 1000;
     min-width: 200px;
-    
+
     // Arrow pointing down
     &::after {
         content: '';
@@ -1404,7 +1426,7 @@ body {
         border-right: 8px solid transparent;
         border-top: 8px solid var(--color-background-widget);
     }
-    
+
     &::before {
         content: '';
         position: absolute;
@@ -1435,11 +1457,11 @@ body {
     justify-content: center;
     border-radius: 6px;
     transition: background-color 0.2s;
-    
+
     &:hover {
         background-color: var(--color-background-card-hover);
     }
-    
+
     img {
         width: 20px;
         height: 20px;
@@ -1466,52 +1488,3 @@ body {
     min-width: 35px;
     text-align: right;
 }
-
-
-
-
-/* ================================
-   TAP/CLICK HIGHLIGHT (ACCESSIBLE)
-   ================================
-   Remove the blue/tap highlight shown on touch/click while preserving
-   keyboard focus visibility using :focus-visible for accessibility.
-*/
-
-/* Disable the tap highlight on WebKit-based mobile browsers (iOS/Android)
-   and on desktop WebKit builds. */
-html, body, * {
-    -webkit-tap-highlight-color: transparent; /* removes blue flash on tap/click */
-    -webkit-touch-callout: none; /* prevent callout on long-press (iOS) */
-}
-
-/* Ensure common interactive elements also get the same treatment */
-a, button, input, textarea, label, [role="button"] {
-    -webkit-tap-highlight-color: transparent;
-}
-
-/* Remove Firefox inner focus border on buttons */
-button::-moz-focus-inner {
-    border: 0;
-    padding: 0;
-}
-
-/* Prevent selection flash when clicking/dragging */
-::selection {
-    background: transparent;
-    color: inherit;
-}
-
-/* Keep keyboard focus visible for accessibility.
-   We remove the default outline for mouse/touch interactions but
-   provide a clear visible focus for keyboard users via :focus-visible. */
-:focus {
-    outline: none;
-}
-
-:focus-visible {
-    outline: 3px solid var(--color-primary);
-    outline-offset: 2px;
-}
-
-
-
