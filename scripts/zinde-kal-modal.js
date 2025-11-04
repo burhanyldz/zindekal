@@ -1263,7 +1263,7 @@ class ZindeKalModal {
             clickToPlay: true,
             invertTime: false,
             playsinline: true,
-            hideControls: false,
+            hideControls: true,
             controls: [
                 'play-large', 'play', 'progress', 'current-time', 'duration', 
                 'mute', 'volume', 'fullscreen'
