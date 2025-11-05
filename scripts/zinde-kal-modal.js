@@ -111,28 +111,16 @@ class ZindeKalModal {
                 iconClass: "icon-bilek",
             },
             {
-                id: "neck-sitting",
-                title: "Oturarak Boyun Egzersizi",
-                icon: "oturarak_boyun.svg",
-                iconClass: "icon-sitting-boyun",
+                id: "neck",
+                title: "Boyun Egzersizi",
+                icon: "boyun.svg",
+                iconClass: "icon-boyun",
             },
             {
-                id: "shoulder-standing",
-                title: "Ayakta Omuz Egzersizi",
-                icon: "ayakta_omuz.svg",
+                id: "shoulder",
+                title: "Omuz Egzersizi",
+                icon: "omuz.svg",
                 iconClass: "icon-omuz",
-            },
-            {
-                id: "shoulder-sitting",
-                title: "Oturarak Omuz Egzersizi",
-                icon: "oturarak_omuz.svg",
-                iconClass: "icon-oturarak-omuz",
-            },
-            {
-                id: "walking",
-                title: "Yürüyüş Egzersizi",
-                icon: "yuruyus.svg",
-                iconClass: "icon-yuruyus",
             },
             {
                 id: "eye",
@@ -141,28 +129,30 @@ class ZindeKalModal {
                 iconClass: "icon-goz",
             },
             {
-                id: "back-standing",
-                title: "Ayakta Bel Egzersizi",
-                icon: "ayakta_bel.svg",
-                iconClass: "icon-ayakta-bel",
-            },
-            {
-                id: "back-sitting",
-                title: "Oturarak Bel ve Sırt Egzersizi",
-                icon: "oturarak_bel_sirt.svg",
-                iconClass: "icon-oturarak-bel-sirt",
-            },
-            {
-                id: "leg-standing",
-                title: "Ayakta Bacak Egzersizi",
-                icon: "ayakta_bacak.svg",
-                iconClass: "icon-ayakta-bacak",
-            },
-            {
                 id: "breathing",
                 title: "Nefes Egzersizi",
                 icon: "nefes.svg",
                 iconClass: "icon-nefes",
+            },
+            {
+                id: "back",
+                title: "Bel ve Sırt Egzersizi",
+                icon: "bel_sirt.svg",
+                iconClass: "icon-bel-sirt",
+            },
+            {
+                id: "walking",
+                title: "Yürüyüş Egzersizi",
+                icon: "yuruyus.svg",
+                iconClass: "icon-yuruyus",
+            },
+            
+            
+            {
+                id: "leg",
+                title: "Bacak Egzersizi",
+                icon: "bacak.svg",
+                iconClass: "icon-bacak",
             }
         ];
     }
