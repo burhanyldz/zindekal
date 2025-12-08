@@ -99,16 +99,16 @@ class ZindeKalModal {
     static get CATEGORIES() {
         return [
             {
-                id: "ankle",
-                title: "Ayak Bileği Egzersizi",
-                icon: "ayak.svg",
-                iconClass: "icon-ayak",
+                id: "breathing",
+                title: "Nefes Egzersizi",
+                icon: "nefes.svg",
+                iconClass: "icon-nefes",
             },
             {
-                id: "wrist",
-                title: "El Bileği Egzersizi",
-                icon: "el_bilegi.svg",
-                iconClass: "icon-bilek",
+                id: "eye",
+                title: "Göz Egzersizi",
+                icon: "goz.svg",
+                iconClass: "icon-goz",
             },
             {
                 id: "neck",
@@ -123,36 +123,34 @@ class ZindeKalModal {
                 iconClass: "icon-omuz",
             },
             {
-                id: "eye",
-                title: "Göz Egzersizi",
-                icon: "goz.svg",
-                iconClass: "icon-goz",
-            },
-            {
-                id: "breathing",
-                title: "Nefes Egzersizi",
-                icon: "nefes.svg",
-                iconClass: "icon-nefes",
-            },
-            {
                 id: "back",
                 title: "Bel ve Sırt Egzersizi",
                 icon: "bel_sirt.svg",
                 iconClass: "icon-bel-sirt",
             },
             {
-                id: "walking",
-                title: "Yürüyüş Egzersizi",
-                icon: "yuruyus.svg",
-                iconClass: "icon-yuruyus",
+                id: "wrist",
+                title: "El Bileği Egzersizi",
+                icon: "el_bilegi.svg",
+                iconClass: "icon-bilek",
             },
-            
-            
             {
                 id: "leg",
                 title: "Bacak Egzersizi",
                 icon: "bacak.svg",
                 iconClass: "icon-bacak",
+            },
+            {
+                id: "ankle",
+                title: "Ayak Bileği Egzersizi",
+                icon: "ayak.svg",
+                iconClass: "icon-ayak",
+            },
+            {
+                id: "walking",
+                title: "Yürüyüş Egzersizi",
+                icon: "yuruyus.svg",
+                iconClass: "icon-yuruyus",
             }
         ];
     }
