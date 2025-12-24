@@ -20,7 +20,12 @@ class ZindeKalModal {
         this.boundEventHandlers = new Map();
         // Track the currently active video player to prevent conflicts
         this.activeVideoPlayer = null;
-        
+
+        // Modal lock properties (5 minute lock)
+        this.canClose = true;
+        this.lockTimer = null;
+        this.lockCountdown = 0;
+
         // Event handlers (not in config anymore)
         this.eventHandlers = {
             onOpen: null,
@@ -31,7 +36,7 @@ class ZindeKalModal {
             onAudioPlay: null,
             onAudioPause: null
         };
-        
+
         // Initialize the plugin
         this.init();
     }
@@ -43,25 +48,27 @@ class ZindeKalModal {
         return {
             // Container where modal will be appended
             container: document.body,
-            
+
             // Modal settings
             modal: {
                 title: "Zinde Kal",
                 closeOnOverlay: true,
                 closeOnEscape: true,
-                showCloseButton: true
+                showCloseButton: true,
+                enableLock: true,
+                lockDuration: 300 // 5 minutes default
             },
-            
+
             // Exercise categories and videos
             exercise: {
                 videos: []
             },
-            
+
             // Relaxing videos
             relaxing: {
                 videos: []
             },
-            
+
             // Music playlist
             music: {
                 tracks: [],
@@ -76,7 +83,7 @@ class ZindeKalModal {
      */
     static get ASSETS() {
         return {
-            basePath: "images/",
+            basePath: "https://ogm-small-cdn.eba.gov.tr/mebi/plugins/stay-fit/images/",
             icons: {
                 close: "close.svg",
                 closeActive: "close-active.svg",
@@ -172,7 +179,7 @@ class ZindeKalModal {
     validateAndMergeConfig(userConfig) {
         // Create a clean copy of default config to avoid mutations
         const defaultConfig = JSON.parse(JSON.stringify(ZindeKalModal.DEFAULT_CONFIG));
-        
+
         // Create a clean copy of user config to avoid circular references
         let cleanUserConfig = {};
         try {
@@ -180,20 +187,20 @@ class ZindeKalModal {
         } catch (error) {
             cleanUserConfig = { ...userConfig };
         }
-        
+
         // Handle container element separately since it can't be serialized
         if (userConfig && userConfig.container) {
             cleanUserConfig.container = userConfig.container;
         }
-        
+
         // Deep merge configuration
         const mergedConfig = this.deepMerge(defaultConfig, cleanUserConfig);
-        
+
         // Basic validation
         if (!mergedConfig.container) {
             throw new Error('ZindeKalModal: Container element is required');
         }
-        
+
         if (typeof mergedConfig.container === 'string') {
             const element = document.querySelector(mergedConfig.container);
             if (!element) {
@@ -201,7 +208,7 @@ class ZindeKalModal {
             }
             mergedConfig.container = element;
         }
-        
+
         return mergedConfig;
     }
 
@@ -213,20 +220,20 @@ class ZindeKalModal {
         if (!target || !source) {
             return source || target || {};
         }
-        
+
         // Prevent circular references
         if (visited.has(source)) {
             return target;
         }
-        
+
         const result = { ...target };
         visited.add(source);
-        
+
         for (const key in source) {
             if (source.hasOwnProperty(key)) {
                 const sourceValue = source[key];
                 const targetValue = target[key];
-                
+
                 // Handle arrays by replacing them completely
                 if (Array.isArray(sourceValue)) {
                     result[key] = [...sourceValue];
@@ -241,7 +248,7 @@ class ZindeKalModal {
                 }
             }
         }
-        
+
         return result;
     }
 
@@ -296,18 +303,18 @@ class ZindeKalModal {
 
         // Create modal HTML structure
         this.createModalStructure();
-        
+
         // Create toast notification
         this.createToastStructure();
-        
+
         // Bind event handlers
         this.bindEvents();
-        
+
         // Initialize first category as active and filter videos if on exercise tab
         this.initializeDefaultCategory();
-        
+
         this.isInitialized = true;
-        
+
         return this;
     }
 
@@ -316,13 +323,13 @@ class ZindeKalModal {
      */
     initializeDefaultCategory() {
         // Only initialize if we're on exercise tab and have categories
-        if (this.currentTab === 'exercise' && 
-            ZindeKalModal.CATEGORIES && 
+        if (this.currentTab === 'exercise' &&
+            ZindeKalModal.CATEGORIES &&
             ZindeKalModal.CATEGORIES.length > 0) {
-            
+
             const firstCategoryId = ZindeKalModal.CATEGORIES[0].id;
             this.filterVideosByCategory(firstCategoryId);
-            
+
             // Center the first category in the viewport (with a small delay to ensure DOM is ready)
             setTimeout(() => {
                 const firstCategoryElement = this.modalElement.querySelector(`[data-category="${firstCategoryId}"]`);
@@ -331,7 +338,7 @@ class ZindeKalModal {
                 }
             }, 100);
         }
-        
+
         return this;
     }
 
@@ -357,7 +364,7 @@ class ZindeKalModal {
 
         window.addEventListener('resize', updateViewport);
         window.addEventListener('orientationchange', updateViewport);
-        
+
         // Store handlers for cleanup
         this.boundEventHandlers.set('viewportResize', updateViewport);
     }
@@ -368,7 +375,7 @@ class ZindeKalModal {
     setViewportHeight() {
         const vh = window.innerHeight * 0.01;
         document.documentElement.style.setProperty('--vh', `${vh}px`);
-        
+
         // Reset offsets to prevent unwanted gaps
         document.documentElement.style.setProperty('--modal-top-offset', '0px');
         document.documentElement.style.setProperty('--modal-bottom-offset', '0px');
@@ -379,7 +386,7 @@ class ZindeKalModal {
      */
     isMobileDevice() {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-               (window.innerWidth <= 768 && 'ontouchstart' in window);
+            (window.innerWidth <= 768 && 'ontouchstart' in window);
     }
 
     /**
@@ -390,9 +397,9 @@ class ZindeKalModal {
         this.modalElement = document.createElement('div');
         this.modalElement.className = 'modal-overlay';
         this.modalElement.id = 'zindeKalModalOverlay';
-        
+
         this.modalElement.innerHTML = this.generateModalHTML();
-        
+
         // Append to container
         this.config.container.appendChild(this.modalElement);
     }
@@ -427,8 +434,9 @@ class ZindeKalModal {
                     ${enabledTabs}
                 </nav>
                 ${this.config.modal.showCloseButton ? `
-                    <button class="close-button" data-action="close">
+                    <button class="close-button d-flex align-items-center" data-action="close">
                         <img src="${ZindeKalModal.ASSETS.basePath}${ZindeKalModal.ASSETS.icons.close}" alt="Close">
+                        <span class="lock-countdown" style="display: none;  font-size:1.3rem; margin-right:3px; color: #ff0000"></span>
                     </button>
                 ` : ''}
             </header>
@@ -440,23 +448,23 @@ class ZindeKalModal {
      */
     generateTabsContent() {
         let content = '';
-        
+
         // Exercise tab
         if (ZindeKalModal.TABS.exercise.enabled) {
             content += this.generateExerciseTab();
         }
-        
-        
+
+
         // Music tab
         if (ZindeKalModal.TABS.music.enabled) {
             content += this.generateMusicTab();
         }
-        
-            // Relaxing videos tab
+
+        // Relaxing videos tab
         if (ZindeKalModal.TABS.relaxing.enabled) {
             content += this.generateRelaxingTab();
         }
-    
+
         return content;
     }
 
@@ -465,7 +473,7 @@ class ZindeKalModal {
      */
     generateExerciseTab() {
         const isActive = this.currentTab === 'exercise';
-        
+
         return `
             <div id="exercise-tab" class="tab-content ${isActive ? 'active' : ''}">
                 ${this.generateCategoryNavigation()}
@@ -485,7 +493,7 @@ class ZindeKalModal {
         const categories = ZindeKalModal.CATEGORIES.map((category, index) => {
             // Calculate actual video count for this category
             const videoCount = this.config.exercise.videos.filter(video => video.categoryId === category.id).length;
-            
+
             return `
                 <a href="#" class="category-item ${index === 0 ? 'active' : ''}" data-category="${category.id}">
                     ${category.badge ? `<span class="badge">${category.badge}</span>` : ''}
@@ -557,7 +565,7 @@ class ZindeKalModal {
      */
     generateRelaxingTab() {
         const isActive = this.currentTab === 'relaxing';
-        
+
         return `
             <div id="relaxing-tab" class="tab-content ${isActive ? 'active' : ''}">
                 ${this.generateVideoGrid(this.config.relaxing.videos)}
@@ -570,7 +578,7 @@ class ZindeKalModal {
      */
     generateMusicTab() {
         const isActive = this.currentTab === 'music';
-        
+
         return `
             <div id="music-tab" class="tab-content ${isActive ? 'active' : ''}" style="padding: 0;">
                 <div class="music-content">
@@ -684,17 +692,17 @@ class ZindeKalModal {
         this.toastElement = document.createElement('div');
         this.toastElement.className = 'toast-notification';
         this.toastElement.id = 'zindeKalToastNotification';
-        
+
         this.toastElement.innerHTML = `
             <div class="alert-content">
-                <img src="images/kanka.png" alt="Alert Icon" class="alert-icon">
+                <img src="https://ogm-small-cdn.eba.gov.tr/mebi/plugins/stay-fit/images/kanka.png" alt="Alert Icon" class="alert-icon">
                 <p class="alert-text"></p>
             </div>
             <button class="close-button" data-action="close-toast">
                 <img src="${ZindeKalModal.ASSETS.basePath}${ZindeKalModal.ASSETS.icons.closeActive}" alt="Close">
             </button>
         `;
-        
+
         this.config.container.appendChild(this.toastElement);
         // Make it obvious the toast is clickable
         try {
@@ -712,7 +720,12 @@ class ZindeKalModal {
         if (this.config.modal.closeOnOverlay) {
             this.addEventHandler(this.modalElement, 'click', (e) => {
                 if (e.target === this.modalElement) {
-                    this.close();
+                    // Respect 5-minute lock
+                    if (this.canClose) {
+                        this.close();
+                    } else {
+                        console.log('Modal kapatılamaz: Lütfen geri sayımın bitmesini bekleyin');
+                    }
                 }
             });
         }
@@ -721,7 +734,12 @@ class ZindeKalModal {
         if (this.config.modal.closeOnEscape) {
             this.addEventHandler(document, 'keydown', (e) => {
                 if (e.key === 'Escape' && this.isModalOpen) {
-                    this.close();
+                    // Respect 5-minute lock
+                    if (this.canClose) {
+                        this.close();
+                    } else {
+                        console.log('Modal kapatılamaz: Lütfen geri sayımın bitmesini bekleyin');
+                    }
                 }
             });
         }
@@ -735,7 +753,7 @@ class ZindeKalModal {
         this.addEventHandler(document, 'click', (e) => {
             const volumePopup = this.modalElement.querySelector('.volume-popup');
             const volumeButton = this.modalElement.querySelector('[data-action="toggle-volume"]');
-            if (volumePopup && volumePopup.style.display !== 'none' && 
+            if (volumePopup && volumePopup.style.display !== 'none' &&
                 !volumePopup.contains(e.target) && !volumeButton.contains(e.target)) {
                 this.hideVolumePopup();
             }
@@ -785,11 +803,11 @@ class ZindeKalModal {
      */
     addEventHandler(element, event, handler) {
         element.addEventListener(event, handler);
-        
+
         if (!this.boundEventHandlers.has(element)) {
             this.boundEventHandlers.set(element, []);
         }
-        
+
         this.boundEventHandlers.get(element).push({ event, handler });
     }
 
@@ -828,7 +846,7 @@ class ZindeKalModal {
      * Handle specific actions
      */
     handleAction(action, event) {
-        
+
         switch (action) {
             case 'close':
                 this.close();
@@ -836,7 +854,7 @@ class ZindeKalModal {
             case 'play-video':
                 const clickedElement = event.target.closest('[data-video-src]');
                 const videoSrc = clickedElement?.dataset.videoSrc;
-                
+
                 if (videoSrc) {
                     this.playVideo(videoSrc);
                 }
@@ -905,10 +923,10 @@ class ZindeKalModal {
         }
 
         // Ensure first category is selected when switching to exercise tab
-        if (tabName === 'exercise' && 
-            ZindeKalModal.CATEGORIES && 
+        if (tabName === 'exercise' &&
+            ZindeKalModal.CATEGORIES &&
             ZindeKalModal.CATEGORIES.length > 0) {
-            
+
             // Only select the first category if none is currently active.
             // Re-selecting/unconditionally re-rendering replaces the .video-grid innerHTML
             // and destroys any initialized inline video players.
@@ -923,7 +941,7 @@ class ZindeKalModal {
         if (this.eventHandlers.onTabChange) {
             this.eventHandlers.onTabChange(tabName, oldTab, this);
         }
-        
+
         return this;
     }
 
@@ -940,7 +958,7 @@ class ZindeKalModal {
         const selectedCategory = this.modalElement.querySelector(`[data-category="${categoryId}"]`);
         if (selectedCategory) {
             selectedCategory.classList.add('active');
-            
+
             // Center the selected category in the viewport
             this.centerSelectedCategory(selectedCategory);
         }
@@ -956,15 +974,15 @@ class ZindeKalModal {
      */
     filterVideosByCategory(categoryId) {
         // Filter exercise videos by category and update the video grid
-        const filteredVideos = this.config.exercise.videos.filter(video => 
+        const filteredVideos = this.config.exercise.videos.filter(video =>
             video.categoryId === categoryId
         );
 
         const exerciseTab = this.modalElement.querySelector('#exercise-tab');
         const videoGrid = exerciseTab.querySelector('.video-grid');
-        
+
         if (videoGrid) {
-            videoGrid.innerHTML = this.generateVideoGrid(filteredVideos,false);
+            videoGrid.innerHTML = this.generateVideoGrid(filteredVideos, false);
         }
 
         return this;
@@ -986,15 +1004,15 @@ class ZindeKalModal {
         // Get the category element's position relative to the scroll container
         const categoryRect = categoryElement.getBoundingClientRect();
         const scrollRect = categoryNavScroll.getBoundingClientRect();
-        
+
         // Calculate the category's position within the scroll container
         const categoryLeftRelativeToScroll = categoryRect.left - scrollRect.left;
         const categoryWidth = categoryRect.width;
         const scrollWidth = scrollRect.width;
-        
+
         // Calculate the center position
         const targetScrollLeft = categoryNavScroll.scrollLeft + categoryLeftRelativeToScroll - (scrollWidth / 2) + (categoryWidth / 2);
-        
+
         // Scroll to center the category
         categoryNavScroll.scrollTo({
             left: targetScrollLeft,
@@ -1018,22 +1036,22 @@ class ZindeKalModal {
         // Step 2: Find the video element in the DOM
         const currentActiveTab = this.modalElement.querySelector('.tab-content.active');
         let playButton = null;
-        
+
         if (currentActiveTab) {
             playButton = currentActiveTab.querySelector(`[data-video-src="${videoSrc}"]`);
         }
-        
+
         if (!playButton) {
             playButton = this.modalElement.querySelector(`[data-video-src="${videoSrc}"]`);
         }
-        
+
         if (!playButton) {
             return this;
         }
 
         const videoCard = playButton.closest('.video-card');
         const thumbnailContainer = videoCard?.querySelector('.video-thumbnail-container');
-        
+
         if (!thumbnailContainer) {
             return this;
         }
@@ -1045,17 +1063,17 @@ class ZindeKalModal {
         let videoData = null;
         const allVideos = [...(this.config.exercise.videos || []), ...(this.config.relaxing.videos || [])];
         const videoCardId = videoCard.getAttribute('data-video-id');
-        
+
         videoData = allVideos.find(video => video.src === videoSrc && video.id === videoCardId) ||
-                   allVideos.find(video => video.src === videoSrc);
-        
+            allVideos.find(video => video.src === videoSrc);
+
         if (videoData && !videoPoster) {
             videoPoster = videoData.thumbnail || '';
         }
 
         // Step 5: Store original thumbnail content
         const originalContent = thumbnailContainer.innerHTML;
-        
+
         // Step 6: Replace thumbnail with video player
         const videoId = `inline-video-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         thumbnailContainer.innerHTML = `
@@ -1068,7 +1086,7 @@ class ZindeKalModal {
 
         const videoElement = thumbnailContainer.querySelector('.inline-video');
         const playerContainer = thumbnailContainer.querySelector('.inline-video-player');
-        
+
         if (!videoElement) {
             thumbnailContainer.innerHTML = originalContent;
             return this;
@@ -1079,14 +1097,14 @@ class ZindeKalModal {
         if (parentTab && !parentTab.classList.contains('active')) {
             const tabId = parentTab.id.replace('-tab', '');
             this.switchTab(tabId);
-            
+
             // Wait for tab switch before initializing player
             setTimeout(() => {
                 this.initializeVideoPlayer(videoElement, playerContainer, originalContent, videoSrc, thumbnailContainer);
             }, 150);
             return this;
         }
-        
+
         // Step 8: Initialize the player
         this.initializeVideoPlayer(videoElement, playerContainer, originalContent, videoSrc, thumbnailContainer);
 
@@ -1103,12 +1121,12 @@ class ZindeKalModal {
 
         try {
             const { playerContainer, plyrInstance } = this.activeVideoPlayer;
-            
+
             if (plyrInstance) {
                 plyrInstance.pause();
                 plyrInstance.destroy();
             }
-            
+
             if (playerContainer && playerContainer.parentElement) {
                 // Restore original thumbnail
                 if (playerContainer._originalContent) {
@@ -1129,14 +1147,14 @@ class ZindeKalModal {
     initializeVideoPlayer(videoElement, playerContainer, originalContent, videoSrc, thumbnailContainer) {
         // Force layout refresh before initializing Plyr
         playerContainer.offsetHeight;
-        
+
         // Initialize Plyr for this specific video
         const player = new Plyr(videoElement, this.getInlinePlayerConfig());
-        
+
         // Store player reference on the container for cleanup
         playerContainer._plyrInstance = player;
         playerContainer._originalContent = originalContent;
-        
+
         // Register this as the active video player (centralized state)
         this.activeVideoPlayer = {
             videoSrc: videoSrc,
@@ -1144,10 +1162,10 @@ class ZindeKalModal {
             plyrInstance: player,
             thumbnailContainer: thumbnailContainer
         };
-        
+
         // Add loading state to help with visibility
         playerContainer.classList.add('plyr-loading');
-        
+
         // Handle fullscreen changes to show/hide volume slider
         player.on('enterfullscreen', () => {
             // Add data-fullscreen attribute to bypass container query restriction
@@ -1159,13 +1177,13 @@ class ZindeKalModal {
                 volumeInput.style.display = 'inline-block';
                 volumeInput.style.width = '60px';
             }
-            
+
             const volumeContainer = playerContainer.querySelector('.plyr__volume');
             if (volumeContainer) {
                 volumeContainer.style.display = 'inline-flex';
             }
         });
-        
+
         player.on('exitfullscreen', () => {
             // Remove data-fullscreen attribute so container query hides it again
             // in narrow containers, and remove inline styles to let CSS take over
@@ -1175,27 +1193,27 @@ class ZindeKalModal {
                 volumeInput.style.display = '';
                 volumeInput.style.width = '';
             }
-            
+
             const volumeContainer = playerContainer.querySelector('.plyr__volume');
             if (volumeContainer) {
                 volumeContainer.style.display = '';
             }
         });
-        
+
         player.on('ready', () => {
             // Remove loading state and ensure visibility
             playerContainer.classList.remove('plyr-loading');
             playerContainer.style.visibility = 'visible';
             playerContainer.style.opacity = '1';
-            
+
             // Force another layout refresh
             playerContainer.offsetHeight;
-            
+
             // Auto-play the video
             player.play().catch(error => {
                 // Silently handle auto-play failures
             });
-            
+
             if (this.eventHandlers.onVideoPlay) {
                 this.eventHandlers.onVideoPlay(videoSrc, this);
             }
@@ -1253,7 +1271,7 @@ class ZindeKalModal {
             playsinline: true,
             hideControls: true,
             controls: [
-                'play-large', 'play', 'progress', 'current-time', 'duration', 
+                'play-large', 'play', 'progress', 'current-time', 'duration',
                 'mute', 'volume', 'fullscreen'
             ],
             fullscreen: {
@@ -1308,14 +1326,14 @@ class ZindeKalModal {
      */
     pauseAllOtherVideos(excludeContainer = null) {
         const allVideoPlayers = this.modalElement.querySelectorAll('.inline-video-player');
-        
+
         let pausedCount = 0;
         allVideoPlayers.forEach(playerContainer => {
             // Skip the container we want to exclude (current playing video)
             if (excludeContainer && playerContainer === excludeContainer) {
                 return;
             }
-            
+
             if (playerContainer._plyrInstance) {
                 try {
                     // Pause the video if it's playing
@@ -1338,13 +1356,13 @@ class ZindeKalModal {
         if (playerContainer && playerContainer._plyrInstance) {
             // Destroy Plyr instance
             playerContainer._plyrInstance.destroy();
-            
+
             // Restore original content
             if (playerContainer._originalContent) {
                 thumbnailContainer.innerHTML = playerContainer._originalContent;
             }
         }
-        
+
         return this;
     }
 
@@ -1353,7 +1371,7 @@ class ZindeKalModal {
      */
     initializeAudioPlayer() {
         const musicPlayerFooter = this.modalElement.querySelector('.music-player');
-        
+
         if (musicPlayerFooter && this.config.music.tracks.length > 0 && !this.audioPlayer) {
             // Import the existing EmbeddedAudioPlayer class
             if (typeof EmbeddedAudioPlayer !== 'undefined') {
@@ -1390,27 +1408,27 @@ class ZindeKalModal {
     }
 
     // Helper methods for audio player integration
-    
+
     /**
      * Update track display in player footer
      */
     updateTrackDisplay(trackIndex, track) {
         // Update current track index in config
         this.config.music.currentTrack = trackIndex;
-        
+
         // Update player details
         const playerDetails = this.modalElement.querySelector('.player-song-details');
         if (playerDetails) {
             const titleElement = playerDetails.querySelector('.player-song-title');
             const artistElement = playerDetails.querySelector('.player-song-artist');
-            
+
             if (titleElement) titleElement.textContent = track.title;
             if (artistElement) artistElement.textContent = track.artist || 'Unknown Artist';
         }
-        
+
         return this;
     }
-    
+
     /**
      * Update playlist visual state
      */
@@ -1419,16 +1437,16 @@ class ZindeKalModal {
             item.classList.toggle('active', index === trackIndex);
             // Clear playing state for all items
             item.classList.remove('playing');
-            
+
             const songInfo = item.querySelector('.song-info');
             const canvas = songInfo.querySelector('canvas');
-            
+
             // Remove any existing canvas animations
             if (canvas) {
                 canvas.remove();
             }
         });
-        
+
         return this;
     }
 
@@ -1438,13 +1456,13 @@ class ZindeKalModal {
     showPlayingAnimation(trackIndex) {
         const playlistItems = this.modalElement.querySelectorAll('.playlist-item');
         const targetItem = playlistItems[trackIndex];
-        
+
         if (targetItem) {
             const songInfo = targetItem.querySelector('.song-info');
             const songNumberIcon = songInfo.querySelector('.song-number-icon');
             const canvas = songInfo.querySelector('canvas');
             const track = this.config.music.tracks[trackIndex];
-            
+
             if (songNumberIcon && !canvas) {
                 // Add the canvas for Rive animation
                 const canvasElement = document.createElement('canvas');
@@ -1452,7 +1470,7 @@ class ZindeKalModal {
                 canvasElement.width = 24;
                 canvasElement.height = 24;
                 songNumberIcon.appendChild(canvasElement);
-                
+
                 this.initializeRiveAnimation();
             }
         }
@@ -1466,12 +1484,12 @@ class ZindeKalModal {
      */
     hidePlayingAnimation() {
         const playlistItems = this.modalElement.querySelectorAll('.playlist-item');
-        
+
         playlistItems.forEach((item, index) => {
             const songInfo = item.querySelector('.song-info');
             const songNumberIcon = songInfo.querySelector('.song-number-icon');
             const canvas = songInfo.querySelector('canvas');
-            
+
             if (canvas) {
                 canvas.remove();
             }
@@ -1487,7 +1505,7 @@ class ZindeKalModal {
     updatePlayingState(isPlaying) {
         const playlistItems = this.modalElement.querySelectorAll('.playlist-item');
         const currentItem = playlistItems[this.config.music.currentTrack];
-        
+
         if (currentItem) {
             if (isPlaying) {
                 currentItem.classList.add('playing');
@@ -1495,7 +1513,7 @@ class ZindeKalModal {
                 currentItem.classList.remove('playing');
             }
         }
-        
+
         return this;
     }
 
@@ -1508,7 +1526,7 @@ class ZindeKalModal {
             playerCanvas.style.display = 'block';
             this.initializePlayerRiveAnimation();
         }
-        
+
         return this;
     }
 
@@ -1520,7 +1538,7 @@ class ZindeKalModal {
         if (playerCanvas) {
             playerCanvas.style.display = 'none';
         }
-        
+
         return this;
     }
 
@@ -1548,7 +1566,7 @@ class ZindeKalModal {
         const volumePopup = this.modalElement.querySelector('.volume-popup');
         if (volumePopup) {
             volumePopup.style.display = 'block';
-            
+
             // Update volume slider and percentage
             this.updateVolumePopupUI();
         }
@@ -1591,7 +1609,7 @@ class ZindeKalModal {
         }
 
         // Update both popup mute button and main volume button icons
-        const iconSrc = this.audioPlayer.isMuted 
+        const iconSrc = this.audioPlayer.isMuted
             ? ZindeKalModal.ASSETS.basePath + ZindeKalModal.ASSETS.icons.muted
             : ZindeKalModal.ASSETS.basePath + ZindeKalModal.ASSETS.icons.unmuted;
         const altText = this.audioPlayer.isMuted ? 'Unmute' : 'Mute';
@@ -1614,10 +1632,10 @@ class ZindeKalModal {
      */
     updateVolume(volume) {
         if (!this.audioPlayer) return;
-        
+
         this.audioPlayer.setVolume(volume);
         this.updateVolumePopupUI();
-        
+
         return this;
     }
 
@@ -1628,13 +1646,13 @@ class ZindeKalModal {
         // This requires the Rive library to be loaded
         if (typeof rive !== 'undefined') {
             const canvas = this.modalElement.querySelector("#playing-riv");
-            
+
             if (canvas) {
                 canvas.width = 24;
                 canvas.height = 24;
                 canvas.style.width = '24px';
                 canvas.style.height = '24px';
-                
+
                 try {
                     new rive.Rive({
                         src: `${ZindeKalModal.ASSETS.basePath}playing.riv`,
@@ -1666,13 +1684,13 @@ class ZindeKalModal {
         // This requires the Rive library to be loaded
         if (typeof rive !== 'undefined') {
             const canvas = this.modalElement.querySelector("#player-playing-riv");
-            
+
             if (canvas) {
                 canvas.width = 24;
                 canvas.height = 24;
                 canvas.style.width = '24px';
                 canvas.style.height = '24px';
-                
+
                 try {
                     new rive.Rive({
                         src: `${ZindeKalModal.ASSETS.basePath}playing.riv`,
@@ -1707,10 +1725,10 @@ class ZindeKalModal {
 
         // Default options
         const defaultOptions = {
-            autoHideDelay: 5000,
-            icon: 'images/kanka.png'
+            autoHideDelay: 15000,
+            icon: 'https://ogm-small-cdn.eba.gov.tr/mebi/plugins/stay-fit/images/kanka.png'
         };
-        
+
         const finalOptions = { ...defaultOptions, ...options };
 
         // Update message
@@ -1768,7 +1786,7 @@ class ZindeKalModal {
         // Create a fresh copy to avoid circular references
         const cleanConfig = JSON.parse(JSON.stringify(newConfig));
         this.config = this.deepMerge(this.config, cleanConfig);
-        
+
         // Rebuild modal if it's initialized
         if (this.isInitialized) {
             const wasOpen = this.isModalOpen;
@@ -1819,9 +1837,71 @@ class ZindeKalModal {
     }
 
     /**
-     * Open the modal
+     * Start close lock timer
+     * Prevents modal from being closed for a specific duration
+     * @param {number} duration - Duration in seconds
      */
-    open() {
+    startCloseLockTimer(duration) {
+        // Clear any existing timer
+        if (this.lockTimer) {
+            clearInterval(this.lockTimer);
+        }
+
+        // Set initial lock state
+        this.canClose = false;
+        this.lockCountdown = duration; // use provided duration
+
+        const closeButton = this.modalElement.querySelector('.close-button');
+        const countdownSpan = this.modalElement.querySelector('.lock-countdown');
+
+        if (!closeButton || !countdownSpan) {
+            console.warn('Close button or countdown element not found');
+            return;
+        }
+
+        // Disable close button and show countdown
+        closeButton.classList.add('disabled');
+        countdownSpan.style.display = 'inline-block';
+
+        // Update countdown display
+        const updateCountdown = () => {
+            const minutes = Math.floor(this.lockCountdown / 60);
+            const seconds = this.lockCountdown % 60;
+            countdownSpan.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        };
+
+        // Initial display
+        updateCountdown();
+
+        // Start countdown timer
+        this.lockTimer = setInterval(() => {
+            this.lockCountdown--;
+
+            if (this.lockCountdown <= 0) {
+                // Timer expired - enable closing
+                clearInterval(this.lockTimer);
+                this.lockTimer = null;
+                this.canClose = true;
+
+                closeButton.classList.remove('disabled');
+                countdownSpan.style.display = 'none';
+                countdownSpan.textContent = '';
+
+                console.log('Modal artık kapatılabilir');
+            } else {
+                // Update countdown display
+                updateCountdown();
+            }
+        }, 1000);
+    }
+
+    /**
+     * Open the modal
+     * @param {Object} options - Open options
+     * @param {boolean} [options.enableLock] - Override lock setting
+     * @param {number} [options.lockDuration] - Override lock duration
+     */
+    open(options = {}) {
         if (!this.isInitialized) {
             return this;
         }
@@ -1830,16 +1910,45 @@ class ZindeKalModal {
         document.body.style.overflow = 'hidden';
         this.isModalOpen = true;
 
+        // Determine lock settings: options > config > defaults
+        const enableLock = options.enableLock !== undefined ?
+            options.enableLock :
+            (this.config.modal.enableLock !== undefined ? this.config.modal.enableLock : false);
+
+        const lockDuration = options.lockDuration !== undefined ?
+            options.lockDuration :
+            (this.config.modal.lockDuration !== undefined ? this.config.modal.lockDuration : 300);
+
+        // Start lock timer if enabled
+        if (enableLock) {
+            this.startCloseLockTimer(lockDuration);
+        } else {
+            // Ensure lock is cleared if not enabled (in case it was set previously)
+            this.canClose = true;
+            if (this.lockTimer) {
+                clearInterval(this.lockTimer);
+                this.lockTimer = null;
+            }
+            // Reset UI
+            const closeButton = this.modalElement.querySelector('.close-button');
+            const countdownSpan = this.modalElement.querySelector('.lock-countdown');
+            if (closeButton) closeButton.classList.remove('disabled');
+            if (countdownSpan) {
+                countdownSpan.style.display = 'none';
+                countdownSpan.textContent = '';
+            }
+        }
+
         // Initialize audio player if music tab is active
         if (this.currentTab === 'music' && !this.audioPlayer) {
             this.initializeAudioPlayer();
         }
 
         // Ensure first category is selected and videos filtered if on exercise tab
-        if (this.currentTab === 'exercise' && 
-            ZindeKalModal.CATEGORIES && 
+        if (this.currentTab === 'exercise' &&
+            ZindeKalModal.CATEGORIES &&
             ZindeKalModal.CATEGORIES.length > 0) {
-            
+
             // Check if any category is currently active
             const activeCategory = this.modalElement.querySelector('.category-item.active');
             if (!activeCategory) {
@@ -1861,6 +1970,18 @@ class ZindeKalModal {
      */
     close() {
         if (!this.isModalOpen) return this;
+
+        // Check if modal can be closed (5-minute lock)
+        if (!this.canClose) {
+            console.log('Modal kapatılamaz: 5 dakikalık süre henüz bitmedi');
+            return this;
+        }
+
+        // Clear lock timer if exists
+        if (this.lockTimer) {
+            clearInterval(this.lockTimer);
+            this.lockTimer = null;
+        }
 
         // Cleanup active video player
         this.cleanupActiveVideoPlayer();
@@ -1894,7 +2015,7 @@ class ZindeKalModal {
             if (playerContainer._plyrInstance) {
                 playerContainer._plyrInstance.destroy();
             }
-            
+
             // Restore original thumbnail if available
             if (playerContainer._originalContent) {
                 const thumbnailContainer = playerContainer.closest('.video-thumbnail-container');
@@ -1903,7 +2024,7 @@ class ZindeKalModal {
                 }
             }
         });
-        
+
         return this;
     }
 
@@ -1953,7 +2074,7 @@ class ZindeKalModal {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ZindeKalModal;
 } else if (typeof define === 'function' && define.amd) {
-    define([], function() { return ZindeKalModal; });
+    define([], function () { return ZindeKalModal; });
 } else {
     window.ZindeKalModal = ZindeKalModal;
 }
