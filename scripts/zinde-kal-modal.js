@@ -17,6 +17,10 @@ class ZindeKalModal {
         this.toastElement = null;
         // Holds the auto-hide timer id for the toast so we can clear it when needed
         this.toastAutoHideTimer = null;
+        // Holds the schedule timer id for the toast
+        this.toastScheduleTimer = null;
+        // Holds the schedule timer id for the modal
+        this.modalScheduleTimer = null;
         this.boundEventHandlers = new Map();
         // Track the currently active video player to prevent conflicts
         this.activeVideoPlayer = null;
@@ -34,7 +38,8 @@ class ZindeKalModal {
             onVideoPlay: null,
             onVideoPause: null,
             onAudioPlay: null,
-            onAudioPause: null
+            onAudioPause: null,
+            onDelayButtonClick: null
         };
 
         // Initialize the plugin
@@ -290,6 +295,11 @@ class ZindeKalModal {
         return this;
     }
 
+    onDelayButtonClick(callback) {
+        this.eventHandlers.onDelayButtonClick = callback;
+        return this;
+    }
+
     /**
      * Initialize the modal plugin
      */
@@ -435,8 +445,8 @@ class ZindeKalModal {
                 </nav>
                 ${this.config.modal.showCloseButton ? `
                     <button class="close-button d-flex align-items-center" data-action="close">
+                        <span class="lock-countdown" style="display: none;"></span>
                         <img src="${ZindeKalModal.ASSETS.basePath}${ZindeKalModal.ASSETS.icons.close}" alt="Close">
-                        <span class="lock-countdown" style="display: none;  font-size:1.3rem; margin-right:3px; color: #ff0000"></span>
                     </button>
                 ` : ''}
             </header>
@@ -694,13 +704,20 @@ class ZindeKalModal {
         this.toastElement.id = 'zindeKalToastNotification';
 
         this.toastElement.innerHTML = `
-            <div class="alert-content">
-                <img src="https://ogm-small-cdn.eba.gov.tr/mebi/plugins/stay-fit/images/kanka.png" alt="Alert Icon" class="alert-icon">
-                <p class="alert-text"></p>
+            <div class="toast-content-wrapper">
+                <div class="alert-content">
+                    <img src="https://ogm-small-cdn.eba.gov.tr/mebi/plugins/stay-fit/images/kanka.png" alt="Alert Icon" class="alert-icon">
+                    <p class="alert-text"></p>
+                </div>
+                <div class="toast-actions">
+                    <button class="toast-action-button delay-button" data-action="delay-toast">
+                        Ertele
+                    </button>
+                    <button class="toast-action-button go-button" data-action="go-toast">
+                        Git
+                    </button>
+                </div>
             </div>
-            <button class="close-button" data-action="close-toast">
-                <img src="${ZindeKalModal.ASSETS.basePath}${ZindeKalModal.ASSETS.icons.closeActive}" alt="Close">
-            </button>
         `;
 
         this.config.container.appendChild(this.toastElement);
@@ -776,24 +793,26 @@ class ZindeKalModal {
             }
         });
 
-        // Toast close button
+        // Toast button handlers
         if (this.toastElement) {
             this.addEventHandler(this.toastElement, 'click', (e) => {
-                // If the close button was clicked, just hide the toast
-                if (e.target.closest('[data-action="close-toast"]')) {
+                const action = e.target.closest('[data-action]')?.dataset.action;
+
+                if (action === 'delay-toast') {
+                    // Trigger delay callback if defined
+                    if (this.eventHandlers.onDelayButtonClick) {
+                        this.eventHandlers.onDelayButtonClick(this);
+                    }
                     this.hideToast();
                     return;
                 }
 
-                // Any other click on the toast should open the modal
-                // and hide the toast to avoid duplicate UI
-                try {
+                if (action === 'go-toast') {
+                    // Open modal
                     this.open();
-                } catch (err) {
-                    // Fail silently if open() isn't available for some reason
+                    this.hideToast();
+                    return;
                 }
-
-                this.hideToast();
             });
         }
     }
@@ -1723,9 +1742,28 @@ class ZindeKalModal {
             return this;
         }
 
-        // Default options
+        // Clear any existing schedule timer
+        if (this.toastScheduleTimer) {
+            clearTimeout(this.toastScheduleTimer);
+            this.toastScheduleTimer = null;
+        }
+
+        // Handle scheduled toast
+        if (options.schedule && options.schedule > 0) {
+            const delayMs = options.schedule * 1000;
+            const { schedule, ...remainingOptions } = options;
+
+            this.toastScheduleTimer = setTimeout(() => {
+                this.toastScheduleTimer = null;
+                this.showToast(message, remainingOptions);
+            }, delayMs);
+
+            return this;
+        }
+
+        // Default options - autoHideDelay can be null/undefined to disable auto-hide
         const defaultOptions = {
-            autoHideDelay: 15000,
+            autoHideDelay: null,
             icon: 'https://ogm-small-cdn.eba.gov.tr/mebi/plugins/stay-fit/images/kanka.png'
         };
 
@@ -1751,8 +1789,9 @@ class ZindeKalModal {
             this.toastAutoHideTimer = null;
         }
 
-        // Auto-hide after configured delay
-        if (finalOptions.autoHideDelay > 0) {
+        // Auto-hide only if autoHideDelay is a positive number
+        // If null, undefined, 0, or negative, toast will only close manually
+        if (finalOptions.autoHideDelay && finalOptions.autoHideDelay > 0) {
             this.toastAutoHideTimer = setTimeout(() => {
                 this.hideToast();
                 this.toastAutoHideTimer = null;
@@ -1774,6 +1813,12 @@ class ZindeKalModal {
         if (this.toastAutoHideTimer) {
             clearTimeout(this.toastAutoHideTimer);
             this.toastAutoHideTimer = null;
+        }
+
+        // Also clear any pending schedule
+        if (this.toastScheduleTimer) {
+            clearTimeout(this.toastScheduleTimer);
+            this.toastScheduleTimer = null;
         }
 
         return this;
@@ -1906,6 +1951,25 @@ class ZindeKalModal {
             return this;
         }
 
+        // Clear any existing schedule timer
+        if (this.modalScheduleTimer) {
+            clearTimeout(this.modalScheduleTimer);
+            this.modalScheduleTimer = null;
+        }
+
+        // Handle scheduled open
+        if (options.schedule && options.schedule > 0) {
+            const delayMs = options.schedule * 1000;
+            const { schedule, ...remainingOptions } = options;
+
+            this.modalScheduleTimer = setTimeout(() => {
+                this.modalScheduleTimer = null;
+                this.open(remainingOptions);
+            }, delayMs);
+
+            return this;
+        }
+
         this.modalElement.classList.add('active');
         document.body.style.overflow = 'hidden';
         this.isModalOpen = true;
@@ -1970,6 +2034,12 @@ class ZindeKalModal {
      */
     close() {
         if (!this.isModalOpen) return this;
+
+        // Clear any pending schedule timer
+        if (this.modalScheduleTimer) {
+            clearTimeout(this.modalScheduleTimer);
+            this.modalScheduleTimer = null;
+        }
 
         // Check if modal can be closed (5-minute lock)
         if (!this.canClose) {
@@ -2062,6 +2132,20 @@ class ZindeKalModal {
         if (this.toastElement) {
             this.toastElement.remove();
             this.toastElement = null;
+        }
+
+        // Clear any pending timers
+        if (this.toastAutoHideTimer) {
+            clearTimeout(this.toastAutoHideTimer);
+            this.toastAutoHideTimer = null;
+        }
+        if (this.toastScheduleTimer) {
+            clearTimeout(this.toastScheduleTimer);
+            this.toastScheduleTimer = null;
+        }
+        if (this.modalScheduleTimer) {
+            clearTimeout(this.modalScheduleTimer);
+            this.modalScheduleTimer = null;
         }
 
         this.isInitialized = false;

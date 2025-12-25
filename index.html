@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,24 +9,27 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles/global.css">
-  
+
   <!-- Plyr video player dependencies -->
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
   <link rel="stylesheet" href="styles/video-player.css">
-  
+
   <!-- Plugin dependencies -->
   <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js" defer></script>
   <script src="scripts/audio-player.js" defer></script>
   <script src="scripts/zinde-kal-modal.js" defer></script>
-    
+
   <!-- Optional: Rive animation support -->
   <script src="https://unpkg.com/@rive-app/canvas" defer></script>
 </head>
+
 <body>
   <!-- Demo düğmeleri -->
   <div class="button-container">
     <button id="openModalBtn" class="zinde-kal-button">ZindeKal Modalini Aç</button>
+    <button id="openScheduledModalBtn" class="zinde-kal-button">Zamanlanmış Modal (3s)</button>
     <button id="showToastBtn" class="notification-button">Bildirim Göster</button>
+    <button id="showScheduledToastBtn" class="notification-button">Zamanlanmış Bildirim (3s)</button>
     <button id="switchToMusicBtn" class="zinde-kal-button">Müzik Sekmesini Aç</button>
 
     <a href="https://github.com/burhanyldz/zindekal" target="_blank" style="text-align: center;">
@@ -37,7 +41,7 @@
     // Örnek yapılandırma verisi
     const sampleConfig = {
       container: document.body,
-      
+
       // Modal ayarları
       modal: {
         title: "Zinde Kal",
@@ -45,7 +49,7 @@
         closeOnEscape: true,
         showCloseButton: true
       },
-      
+
       // Egzersiz içeriği (videolar). Kategoriler sabittir ve JS içinde tanımlıdır.
       exercise: {
         videos: [
@@ -132,7 +136,7 @@
           }
         ]
       },
-      
+
       // Rahatlatıcı videolar
       relaxing: {
         videos: [
@@ -154,7 +158,7 @@
           }
         ]
       },
-      
+
       // Müzik çalma listesi
       music: {
         currentTrack: 0,
@@ -199,11 +203,14 @@
       }
     };
 
-  // Modal eklentisini başlat
+    // Modal eklentisini başlat
     let zindeKalModal;
-    
-    document.addEventListener('DOMContentLoaded', function() {
+
+    document.addEventListener('DOMContentLoaded', function () {
       try {
+
+        let delayCount = 0;
+
         // Eklentiyi örnek konfigürasyonla başlat
         zindeKalModal = new ZindeKalModal(sampleConfig);
 
@@ -229,22 +236,40 @@
           })
           .onAudioPause((track, modal) => {
             console.log('Ses duraklatıldı:', track);
+          })
+          .onDelayButtonClick((modal) => {
+            console.log('Delay butonu tıklandı:', modal);
+            if (delayCount === 2) {
+              delayCount = 0;
+              zindeKalModal.open({ schedule: 600 }); // 10 dakika sonra zindekal modalını aç
+            } else {
+              delayCount++;
+              zindeKalModal.showToast('Uzun süredir çalışıyorsunuz. Kısa bir mola vermek için tıklayın.', { schedule: 600 });
+            }
           });
-          
-        
+
+
         document.getElementById('openModalBtn').addEventListener('click', () => {
           zindeKalModal.open();
         });
-        
-        document.getElementById('showToastBtn').addEventListener('click', () => {
-          zindeKalModal.showToast('MEBİ\'de 2 saattir çalışıyorsunuz. Kısa bir mola vermek ister misiniz? Hadi, şimdi küçük bir egzersiz yapma zamanı!');
+
+        document.getElementById('openScheduledModalBtn').addEventListener('click', () => {
+          zindeKalModal.open({ schedule: 3 });
         });
-              
+
+        document.getElementById('showToastBtn').addEventListener('click', () => {
+          zindeKalModal.showToast('Uzun süredir çalışıyorsunuz. Kısa bir mola vermek için tıklayın.');
+        });
+
+        document.getElementById('showScheduledToastBtn').addEventListener('click', () => {
+          zindeKalModal.showToast('Bu bildirim 3 saniye sonra otomatik olarak gösterildi!', { schedule: 3 });
+        });
+
         document.getElementById('switchToMusicBtn').addEventListener('click', () => {
           zindeKalModal.open();
           zindeKalModal.switchTab('music');
         });
-        
+
       } catch (error) {
         console.error('Failed to initialize ZindeKal Modal:', error);
       }
@@ -269,4 +294,5 @@
   </script>
 
 </body>
+
 </html>
