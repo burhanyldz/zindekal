@@ -650,7 +650,7 @@ class ZindeKalModal {
                         <canvas id="player-playing-riv" width="24" height="24" style="display: none;"></canvas>
                         <span class="player-song-title">${currentTrack.title}</span>
                     </div>
-                    <span class="player-song-artist">${currentTrack.artist || 'Unknown Artist'}</span>
+                    <span class="player-song-artist">${currentTrack.artist || ''}</span>
                 </div>
                 <div class="player-controls-container">
                     <div class="player-controls">
@@ -1442,7 +1442,7 @@ class ZindeKalModal {
             const artistElement = playerDetails.querySelector('.player-song-artist');
 
             if (titleElement) titleElement.textContent = track.title;
-            if (artistElement) artistElement.textContent = track.artist || 'Unknown Artist';
+            if (artistElement) artistElement.textContent = track.artist || '';
         }
 
         return this;
